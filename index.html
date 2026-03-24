@@ -13,65 +13,77 @@
     --card:     #1c2128;
     --border:   #30363d;
     --text:     #e6edf3;
-    --text-dim: #8b949e;
+    --dim:      #8b949e;
     --green:    #3fb950;
-    --orange:   #e3b341;
+    --yellow:   #e3b341;
     --red:      #ff7b72;
     --blue:     #58a6ff;
-    --teal:     #39d0a5;
+    --gray:     #6e7681;
+    --radius:   10px;
   }
 
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
-    min-height: 100vh;
+    font-family: "Segoe UI", "Microsoft JhengHei", system-ui, sans-serif;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
+    -webkit-text-size-adjust: 100%;
   }
 
-  /* ── Login ─────────────────────────────────────────── */
+  /* ── Login ──────────────────────────────────────────── */
   #login-screen {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 24px;
   }
 
   .login-card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 40px 36px;
-    width: 340px;
+    border-radius: 16px;
+    padding: 40px 32px;
+    width: 100%;
+    max-width: 360px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
+  }
+
+  .login-logo {
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 4px;
   }
 
   .login-card h1 {
     font-size: 18px;
-    font-weight: 600;
-    color: var(--text);
+    font-weight: 700;
     text-align: center;
   }
 
   .login-card p {
     font-size: 13px;
-    color: var(--text-dim);
+    color: var(--dim);
     text-align: center;
+    margin-top: -6px;
   }
 
   .login-card input {
     background: #21262d;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 8px;
     color: var(--text);
-    font-size: 14px;
-    padding: 10px 12px;
+    font-size: 15px;
+    padding: 12px 14px;
     width: 100%;
     outline: none;
     transition: border-color .15s;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
   .login-card input:focus { border-color: var(--blue); }
@@ -79,51 +91,54 @@
   .login-card button {
     background: #238636;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     color: #fff;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
-    padding: 10px;
+    padding: 13px;
     width: 100%;
     transition: background .15s;
   }
 
-  .login-card button:hover { background: #2ea043; }
+  .login-card button:hover  { background: #2ea043; }
+  .login-card button:active { background: #1a7430; }
   .login-card button:disabled { background: #444; cursor: default; }
 
   .login-error {
     color: var(--red);
-    font-size: 12px;
+    font-size: 13px;
     text-align: center;
-    min-height: 16px;
+    min-height: 18px;
   }
 
-  /* ── Dashboard ──────────────────────────────────────── */
-  #dashboard { display: none; flex-direction: column; min-height: 100vh; }
+  /* ── Dashboard layout ──────────────────────────────── */
+  #dashboard { display: none; flex-direction: column; flex: 1; }
 
   header {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 14px 24px;
+    padding: 12px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
 
-  header h1 { font-size: 16px; font-weight: 600; }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header-left h1 { font-size: 15px; font-weight: 700; }
 
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  .header-right { display: flex; align-items: center; gap: 8px; }
+
+  #refresh-status {
     font-size: 12px;
-    color: var(--text-dim);
+    color: var(--dim);
+    white-space: nowrap;
   }
-
-  #refresh-status { color: var(--text-dim); }
-  #refresh-status.ok { color: var(--green); }
+  #refresh-status.ok  { color: var(--green); }
   #refresh-status.err { color: var(--red); }
 
   .btn-sm {
@@ -133,42 +148,205 @@
     color: var(--text);
     cursor: pointer;
     font-size: 12px;
-    padding: 5px 12px;
+    padding: 6px 12px;
+    white-space: nowrap;
     transition: background .15s;
   }
-  .btn-sm:hover { background: #30363d; }
+  .btn-sm:hover  { background: #30363d; }
+  .btn-sm:active { background: #3d444d; }
 
-  main { padding: 24px; flex: 1; }
+  main { padding: 16px; flex: 1; }
 
-  /* ── Summary cards ──────────────────────────────────── */
-  .summary-row {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
+  /* ── Summary strip ─────────────────────────────────── */
+  .summary-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
   }
 
   .summary-card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 20px;
-    flex: 1;
-    min-width: 120px;
+    border-radius: var(--radius);
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
   }
 
-  .summary-card .label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
-  .summary-card .value { font-size: 22px; font-weight: 700; }
-  .summary-card.running .value  { color: var(--green); }
-  .summary-card.offline .value  { color: var(--text-dim); }
-  .summary-card.error   .value  { color: var(--red); }
-  .summary-card.total   .value  { color: var(--blue); }
+  .summary-card .s-icon  { font-size: 18px; line-height: 1; }
+  .summary-card .s-val   { font-size: 22px; font-weight: 800; line-height: 1; }
+  .summary-card .s-label { font-size: 10px; color: var(--dim); white-space: nowrap; }
 
-  /* ── Table ──────────────────────────────────────────── */
-  .table-wrap {
+  .summary-card.running  .s-val { color: var(--green);  }
+  .summary-card.warning  .s-val { color: var(--yellow); }
+  .summary-card.error    .s-val { color: var(--red);    }
+  .summary-card.offline  .s-val { color: var(--gray);   }
+
+  /* ── Device cards (mobile default) ─────────────────── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .device-card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .device-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .device-name {
+    font-weight: 600;
+    font-size: 15px;
+    word-break: break-all;
+  }
+
+  .device-id {
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 11px;
+    color: var(--dim);
+    margin-top: 2px;
+  }
+
+  .device-card-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .stat-box {
+    background: #21262d;
+    border-radius: 6px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+
+  .stat-box .stat-val   { font-size: 18px; font-weight: 700; }
+  .stat-box .stat-label { font-size: 10px; color: var(--dim); margin-top: 1px; }
+
+  .device-card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .last-seen { font-size: 12px; color: var(--dim); }
+
+  .err-msg {
+    color: var(--red);
+    font-size: 12px;
+    word-break: break-all;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: -2px;
+  }
+
+  /* ── Status badge ──────────────────────────────────── */
+  .badge {
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .badge::before {
+    content: "";
+    border-radius: 50%;
+    display: inline-block;
+    height: 7px;
+    width: 7px;
+    flex-shrink: 0;
+  }
+
+  .badge-running { background: rgba(63,185,80,.15);   color: var(--green);  }
+  .badge-running::before  { background: var(--green);  animation: pulse 1.4s ease-in-out infinite; }
+
+  .badge-warning { background: rgba(227,179,65,.15);  color: var(--yellow); }
+  .badge-warning::before  { background: var(--yellow); animation: pulse 2s ease-in-out infinite; }
+
+  .badge-error   { background: rgba(255,123,114,.15); color: var(--red);    }
+  .badge-error::before    { background: var(--red);    }
+
+  .badge-offline { background: rgba(110,118,129,.12); color: var(--gray);   }
+  .badge-offline::before  { background: var(--gray);   }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .25; }
+  }
+
+  /* ── Empty ─────────────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--dim);
+    font-size: 14px;
+  }
+
+  /* ── Spinner ───────────────────────────────────────── */
+  .spinner {
+    border: 2px solid var(--border);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    display: inline-block;
+    height: 13px;
+    width: 13px;
+    animation: spin .7s linear infinite;
+    vertical-align: middle;
+    margin-right: 5px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Tablet / Desktop ──────────────────────────────── */
+  @media (min-width: 540px) {
+    main { padding: 20px; }
+
+    .summary-strip { gap: 12px; }
+    .summary-card  { padding: 16px; flex-direction: row; align-items: center; gap: 12px; }
+    .summary-card .s-icon  { font-size: 22px; }
+    .summary-card .s-val   { font-size: 26px; }
+    .summary-card .s-label { font-size: 11px; }
+
+    .cards-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (min-width: 900px) {
+    main { padding: 24px; }
+    .cards-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  /* 超大螢幕用 table 取代 cards */
+  @media (min-width: 1100px) {
+    .cards-grid { display: none; }
+    .table-wrap { display: block; }
+  }
+
+  .table-wrap {
+    display: none;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     overflow: hidden;
   }
 
@@ -177,8 +355,8 @@
   thead th {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    color: var(--text-dim);
-    font-weight: 500;
+    color: var(--dim);
+    font-weight: 600;
     padding: 10px 16px;
     text-align: left;
     white-space: nowrap;
@@ -186,77 +364,24 @@
 
   tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
   tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: rgba(255,255,255,.03); }
+  tbody tr:hover { background: rgba(255,255,255,.025); }
 
   td { padding: 12px 16px; vertical-align: middle; }
 
-  /* status badge */
-  .badge {
-    border-radius: 20px;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 9px;
-  }
-  .badge::before {
-    content: "";
-    border-radius: 50%;
-    display: inline-block;
-    height: 6px;
-    width: 6px;
-  }
-
-  .badge-running  { background: rgba(63,185,80,.15);  color: var(--green);  }
-  .badge-running::before  { background: var(--green); animation: pulse 1.5s infinite; }
-  .badge-closed   { background: rgba(139,148,158,.12); color: var(--text-dim); }
-  .badge-closed::before   { background: var(--text-dim); }
-  .badge-error    { background: rgba(255,123,114,.15); color: var(--red);    }
-  .badge-error::before    { background: var(--red); }
-  .badge-offline  { background: rgba(227,179,65,.12);  color: var(--orange); }
-  .badge-offline::before  { background: var(--orange); }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50%       { opacity: .3; }
-  }
-
-  .mono { font-family: "Consolas", "Courier New", monospace; font-size: 12px; color: var(--text-dim); }
-  .dim  { color: var(--text-dim); }
-  .err-msg { color: var(--red); font-size: 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-  /* empty state */
-  .empty {
-    padding: 48px;
-    text-align: center;
-    color: var(--text-dim);
-    font-size: 13px;
-  }
-
-  /* spinner */
-  .spinner {
-    border: 2px solid var(--border);
-    border-top-color: var(--blue);
-    border-radius: 50%;
-    display: inline-block;
-    height: 14px;
-    width: 14px;
-    animation: spin .7s linear infinite;
-    vertical-align: middle;
-    margin-right: 6px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .mono { font-family: "Consolas", "Courier New", monospace; font-size: 11px; color: var(--dim); }
+  .td-name strong { font-weight: 600; font-size: 14px; }
+  .td-err { color: var(--red); font-size: 12px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>
 </head>
 <body>
 
-<!-- ── Login ─────────────────────────────────────────── -->
+<!-- ── Login ──────────────────────────────────────────── -->
 <div id="login-screen">
   <div class="login-card">
+    <div class="login-logo">⚔️</div>
     <h1>Mabi-Auto 監控</h1>
     <p>輸入監控密碼以繼續</p>
-    <input id="pw-input" type="password" placeholder="密碼" autocomplete="current-password">
+    <input id="pw-input" type="password" placeholder="密碼" autocomplete="current-password" inputmode="text">
     <button id="login-btn">登入</button>
     <div class="login-error" id="login-error"></div>
   </div>
@@ -265,22 +390,55 @@
 <!-- ── Dashboard ──────────────────────────────────────── -->
 <div id="dashboard">
   <header>
-    <h1>Mabi-Auto 監控面板</h1>
+    <div class="header-left">
+      <h1>⚔️ Mabi-Auto 監控</h1>
+    </div>
     <div class="header-right">
       <span id="refresh-status">—</span>
-      <button class="btn-sm" id="refresh-btn">重新整理</button>
+      <button class="btn-sm" id="refresh-btn">↻ 重整</button>
       <button class="btn-sm" id="logout-btn">登出</button>
     </div>
   </header>
 
   <main>
-    <div class="summary-row">
-      <div class="summary-card running"><div class="label">執行中</div><div class="value" id="cnt-running">—</div></div>
-      <div class="summary-card error">  <div class="label">異常中斷</div><div class="value" id="cnt-error">—</div></div>
-      <div class="summary-card offline"><div class="label">離線/關閉</div><div class="value" id="cnt-offline">—</div></div>
-      <div class="summary-card total">  <div class="label">裝置總數</div><div class="value" id="cnt-total">—</div></div>
+    <!-- Summary -->
+    <div class="summary-strip">
+      <div class="summary-card running">
+        <div class="s-icon">🟢</div>
+        <div>
+          <div class="s-val" id="cnt-running">—</div>
+          <div class="s-label">執行中</div>
+        </div>
+      </div>
+      <div class="summary-card warning">
+        <div class="s-icon">🟡</div>
+        <div>
+          <div class="s-val" id="cnt-warning">—</div>
+          <div class="s-label">警告</div>
+        </div>
+      </div>
+      <div class="summary-card error">
+        <div class="s-icon">🔴</div>
+        <div>
+          <div class="s-val" id="cnt-error">—</div>
+          <div class="s-label">異常/中斷</div>
+        </div>
+      </div>
+      <div class="summary-card offline">
+        <div class="s-icon">⚫</div>
+        <div>
+          <div class="s-val" id="cnt-offline">—</div>
+          <div class="s-label">離線/關閉</div>
+        </div>
+      </div>
     </div>
 
+    <!-- Mobile / Tablet: card grid -->
+    <div class="cards-grid" id="cards-grid">
+      <div class="empty-state">載入中...</div>
+    </div>
+
+    <!-- Desktop: table -->
     <div class="table-wrap">
       <table>
         <thead>
@@ -291,11 +449,11 @@
             <th>存金幣</th>
             <th>修裝備</th>
             <th>最後回報</th>
-            <th>錯誤訊息</th>
+            <th>訊息</th>
           </tr>
         </thead>
         <tbody id="table-body">
-          <tr><td colspan="7" class="empty">載入中...</td></tr>
+          <tr><td colspan="7" class="empty-state">載入中...</td></tr>
         </tbody>
       </table>
     </div>
@@ -303,24 +461,22 @@
 </div>
 
 <script>
-// ── 設定（部署後修改這裡）──────────────────────────────
-const EDGE_URL = "https://tdlkrbilsghpqjbsvqzl.supabase.co/functions/v1/monitor_status";
+// ── 設定 ────────────────────────────────────────────────
+const EDGE_URL       = "https://tdlkrbilsghpqjbsvqzl.supabase.co/functions/v1/monitor_status";
+const OFFLINE_MINS   = 12;   // 超過幾分鐘沒回報 → 顯示離線
+const REFRESH_SEC    = 30;   // 自動重整間隔（秒）
 // ────────────────────────────────────────────────────────
 
-const OFFLINE_MINUTES = 15;   // 超過幾分鐘沒回報視為離線
-const REFRESH_SEC     = 30;   // 自動重新整理間隔
-
-let password = "";
+let password     = "";
 let refreshTimer = null;
 
-// ── Login ────────────────────────────────────────────────
-const loginScreen  = document.getElementById("login-screen");
-const dashboard    = document.getElementById("dashboard");
-const pwInput      = document.getElementById("pw-input");
-const loginBtn     = document.getElementById("login-btn");
-const loginError   = document.getElementById("login-error");
+// ── 登入 ──────────────────────────────────────────────────
+const loginScreen = document.getElementById("login-screen");
+const dashboard   = document.getElementById("dashboard");
+const pwInput     = document.getElementById("pw-input");
+const loginBtn    = document.getElementById("login-btn");
+const loginError  = document.getElementById("login-error");
 
-// 記住 session（關分頁就清掉）
 const saved = sessionStorage.getItem("monitor_pw");
 if (saved) { password = saved; showDashboard(); }
 
@@ -334,7 +490,7 @@ async function doLogin() {
   loginBtn.innerHTML = '<span class="spinner"></span>驗證中...';
   loginError.textContent = "";
 
-  const ok = await fetchStatus(pw);
+  const ok = await fetchData(pw);
   if (ok) {
     password = pw;
     sessionStorage.setItem("monitor_pw", pw);
@@ -349,7 +505,7 @@ async function doLogin() {
 function showDashboard() {
   loginScreen.style.display = "none";
   dashboard.style.display = "flex";
-  fetchStatus(password);
+  fetchData(password);
   startAutoRefresh();
 }
 
@@ -366,23 +522,22 @@ document.getElementById("logout-btn").addEventListener("click", () => {
 
 document.getElementById("refresh-btn").addEventListener("click", () => {
   clearAutoRefresh();
-  fetchStatus(password);
-  startAutoRefresh();
+  fetchData(password).then(() => startAutoRefresh());
 });
 
-// ── Auto refresh ─────────────────────────────────────────
+// ── Auto refresh ──────────────────────────────────────────
 function startAutoRefresh() {
   clearAutoRefresh();
-  refreshTimer = setTimeout(() => { fetchStatus(password); startAutoRefresh(); }, REFRESH_SEC * 1000);
+  refreshTimer = setTimeout(() => { fetchData(password).then(startAutoRefresh); }, REFRESH_SEC * 1000);
 }
 function clearAutoRefresh() {
   if (refreshTimer) { clearTimeout(refreshTimer); refreshTimer = null; }
 }
 
-// ── Fetch ────────────────────────────────────────────────
+// ── Fetch ─────────────────────────────────────────────────
 const refreshStatus = document.getElementById("refresh-status");
 
-async function fetchStatus(pw) {
+async function fetchData(pw) {
   refreshStatus.className = "";
   refreshStatus.innerHTML = '<span class="spinner"></span>更新中...';
   try {
@@ -397,77 +552,130 @@ async function fetchStatus(pw) {
       return false;
     }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    renderTable(data.rows ?? []);
-    const now = new Date().toLocaleTimeString("zh-TW");
+    const { rows } = await res.json();
+    render(rows ?? []);
+    const t = new Date().toLocaleTimeString("zh-TW");
     refreshStatus.className = "ok";
-    refreshStatus.textContent = `更新於 ${now}`;
+    refreshStatus.textContent = `更新於 ${t}`;
     return true;
-  } catch (e) {
+  } catch {
     refreshStatus.className = "err";
     refreshStatus.textContent = "連線失敗";
     return false;
   }
 }
 
-// ── Render ───────────────────────────────────────────────
-function renderTable(rows) {
-  const tbody = document.getElementById("table-body");
+// ── 狀態計算 ──────────────────────────────────────────────
+function effectiveStatus(row) {
+  const minsAgo = (Date.now() - new Date(row.last_seen).getTime()) / 60000;
+  if (minsAgo > OFFLINE_MINS) return "offline";
+  return row.status || "offline";
+}
 
-  // summary
-  const now = Date.now();
-  let cntRunning = 0, cntError = 0, cntOffline = 0;
+const BADGE_LABEL = { running: "執行中", warning: "警告", error: "異常/中斷", offline: "離線" };
 
+function badge(status) {
+  const label = BADGE_LABEL[status] ?? status;
+  return `<span class="badge badge-${status}">${label}</span>`;
+}
+
+// ── Render ────────────────────────────────────────────────
+function render(rows) {
+  let cntRunning = 0, cntWarning = 0, cntError = 0, cntOffline = 0;
   rows.forEach(r => {
-    const minsAgo = (now - new Date(r.last_seen).getTime()) / 60000;
-    const isOffline = minsAgo > OFFLINE_MINUTES;
-    if (isOffline || r.status === "closed") cntOffline++;
-    else if (r.status === "running") cntRunning++;
-    else if (r.status === "error") cntError++;
+    const s = effectiveStatus(r);
+    if (s === "running")  cntRunning++;
+    else if (s === "warning") cntWarning++;
+    else if (s === "error")   cntError++;
     else cntOffline++;
   });
-
   document.getElementById("cnt-running").textContent = cntRunning;
+  document.getElementById("cnt-warning").textContent = cntWarning;
   document.getElementById("cnt-error").textContent   = cntError;
-  document.getElementById("cnt-offline").textContent = cntOffline;
-  document.getElementById("cnt-total").textContent   = rows.length;
+  document.getElementById("cnt-offline").textContent  = cntOffline;
 
+  renderCards(rows);
+  renderTable(rows);
+}
+
+function renderCards(rows) {
+  const grid = document.getElementById("cards-grid");
   if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty">目前沒有任何裝置回報過資料</td></tr>';
+    grid.innerHTML = '<div class="empty-state">尚無裝置資料</div>';
     return;
   }
+  grid.innerHTML = rows.map(r => {
+    const s = effectiveStatus(r);
+    const errRow = r.error_msg
+      ? `<div class="err-msg">⚠ ${esc(r.error_msg)}</div>`
+      : "";
+    return `
+    <div class="device-card">
+      <div class="device-card-top">
+        <div>
+          <div class="device-name">${esc(r.user_name || "未命名")}</div>
+          <div class="device-id">${esc(r.machine_id.slice(0, 10))}…</div>
+        </div>
+        ${badge(s)}
+      </div>
+      <div class="device-card-stats">
+        <div class="stat-box">
+          <div class="stat-val">${r.runs_count}</div>
+          <div class="stat-label">刷場</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">${r.deposits_count}</div>
+          <div class="stat-label">存金幣</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val">${r.repairs_count}</div>
+          <div class="stat-label">修裝備</div>
+        </div>
+      </div>
+      <div class="device-card-bottom">
+        <span class="last-seen">🕐 ${relTime(r.last_seen)}</span>
+      </div>
+      ${errRow}
+    </div>`;
+  }).join("");
+}
 
+function renderTable(rows) {
+  const tbody = document.getElementById("table-body");
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">尚無裝置資料</td></tr>';
+    return;
+  }
   tbody.innerHTML = rows.map(r => {
-    const minsAgo  = (now - new Date(r.last_seen).getTime()) / 60000;
-    const isOffline = minsAgo > OFFLINE_MINUTES;
-    const effectiveStatus = isOffline ? "offline" : r.status;
-    const badgeLabel = { running: "執行中", closed: "已關閉", error: "異常", offline: "離線" }[effectiveStatus] ?? effectiveStatus;
-
+    const s = effectiveStatus(r);
     return `<tr>
-      <td>
-        <div style="font-weight:500">${esc(r.user_name || "—")}</div>
-        <div class="mono">${esc(r.machine_id.slice(0,8))}…</div>
+      <td class="td-name">
+        <strong>${esc(r.user_name || "未命名")}</strong>
+        <div class="mono">${esc(r.machine_id.slice(0, 10))}…</div>
       </td>
-      <td><span class="badge badge-${effectiveStatus}">${badgeLabel}</span></td>
+      <td>${badge(s)}</td>
       <td>${r.runs_count}</td>
       <td>${r.deposits_count}</td>
       <td>${r.repairs_count}</td>
-      <td class="dim" title="${esc(r.last_seen)}">${relTime(r.last_seen)}</td>
-      <td>${r.error_msg ? `<span class="err-msg" title="${esc(r.error_msg)}">${esc(r.error_msg)}</span>` : '<span class="dim">—</span>'}</td>
+      <td style="color:var(--dim);font-size:12px" title="${esc(r.last_seen)}">${relTime(r.last_seen)}</td>
+      <td>${r.error_msg ? `<span class="td-err" title="${esc(r.error_msg)}">${esc(r.error_msg)}</span>` : '<span style="color:var(--dim)">—</span>'}</td>
     </tr>`;
   }).join("");
 }
 
+// ── Helpers ───────────────────────────────────────────────
 function esc(s) {
-  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  return String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 function relTime(iso) {
-  const d = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (d < 60)   return `${Math.round(d)} 秒前`;
-  if (d < 3600) return `${Math.round(d/60)} 分鐘前`;
-  if (d < 86400)return `${Math.round(d/3600)} 小時前`;
-  return `${Math.round(d/86400)} 天前`;
+  const s = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (s < 60)    return `${Math.round(s)} 秒前`;
+  if (s < 3600)  return `${Math.round(s / 60)} 分鐘前`;
+  if (s < 86400) return `${Math.round(s / 3600)} 小時前`;
+  return `${Math.round(s / 86400)} 天前`;
 }
 </script>
 </body>
