@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mabi-Auto 監控</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0d1117;
+    --surface:  #161b22;
+    --card:     #1c2128;
+    --border:   #30363d;
+    --text:     #e6edf3;
+    --text-dim: #8b949e;
+    --green:    #3fb950;
+    --orange:   #e3b341;
+    --red:      #ff7b72;
+    --blue:     #58a6ff;
+    --teal:     #39d0a5;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Login ─────────────────────────────────────────── */
+  #login-screen {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .login-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 40px 36px;
+    width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .login-card h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+  }
+
+  .login-card p {
+    font-size: 13px;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  .login-card input {
+    background: #21262d;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 14px;
+    padding: 10px 12px;
+    width: 100%;
+    outline: none;
+    transition: border-color .15s;
+  }
+
+  .login-card input:focus { border-color: var(--blue); }
+
+  .login-card button {
+    background: #238636;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px;
+    width: 100%;
+    transition: background .15s;
+  }
+
+  .login-card button:hover { background: #2ea043; }
+  .login-card button:disabled { background: #444; cursor: default; }
+
+  .login-error {
+    color: var(--red);
+    font-size: 12px;
+    text-align: center;
+    min-height: 16px;
+  }
+
+  /* ── Dashboard ──────────────────────────────────────── */
+  #dashboard { display: none; flex-direction: column; min-height: 100vh; }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  header h1 { font-size: 16px; font-weight: 600; }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  #refresh-status { color: var(--text-dim); }
+  #refresh-status.ok { color: var(--green); }
+  #refresh-status.err { color: var(--red); }
+
+  .btn-sm {
+    background: #21262d;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 5px 12px;
+    transition: background .15s;
+  }
+  .btn-sm:hover { background: #30363d; }
+
+  main { padding: 24px; flex: 1; }
+
+  /* ── Summary cards ──────────────────────────────────── */
+  .summary-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .summary-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 20px;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .summary-card .label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+  .summary-card .value { font-size: 22px; font-weight: 700; }
+  .summary-card.running .value  { color: var(--green); }
+  .summary-card.offline .value  { color: var(--text-dim); }
+  .summary-card.error   .value  { color: var(--red); }
+  .summary-card.total   .value  { color: var(--blue); }
+
+  /* ── Table ──────────────────────────────────────────── */
+  .table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+  thead th {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+    font-weight: 500;
+    padding: 10px 16px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,.03); }
+
+  td { padding: 12px 16px; vertical-align: middle; }
+
+  /* status badge */
+  .badge {
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 9px;
+  }
+  .badge::before {
+    content: "";
+    border-radius: 50%;
+    display: inline-block;
+    height: 6px;
+    width: 6px;
+  }
+
+  .badge-running  { background: rgba(63,185,80,.15);  color: var(--green);  }
+  .badge-running::before  { background: var(--green); animation: pulse 1.5s infinite; }
+  .badge-closed   { background: rgba(139,148,158,.12); color: var(--text-dim); }
+  .badge-closed::before   { background: var(--text-dim); }
+  .badge-error    { background: rgba(255,123,114,.15); color: var(--red);    }
+  .badge-error::before    { background: var(--red); }
+  .badge-offline  { background: rgba(227,179,65,.12);  color: var(--orange); }
+  .badge-offline::before  { background: var(--orange); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .3; }
+  }
+
+  .mono { font-family: "Consolas", "Courier New", monospace; font-size: 12px; color: var(--text-dim); }
+  .dim  { color: var(--text-dim); }
+  .err-msg { color: var(--red); font-size: 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* empty state */
+  .empty {
+    padding: 48px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  /* spinner */
+  .spinner {
+    border: 2px solid var(--border);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    display: inline-block;
+    height: 14px;
+    width: 14px;
+    animation: spin .7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- ── Login ─────────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>Mabi-Auto 監控</h1>
+    <p>輸入監控密碼以繼續</p>
+    <input id="pw-input" type="password" placeholder="密碼" autocomplete="current-password">
+    <button id="login-btn">登入</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ── Dashboard ──────────────────────────────────────── -->
+<div id="dashboard">
+  <header>
+    <h1>Mabi-Auto 監控面板</h1>
+    <div class="header-right">
+      <span id="refresh-status">—</span>
+      <button class="btn-sm" id="refresh-btn">重新整理</button>
+      <button class="btn-sm" id="logout-btn">登出</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="summary-row">
+      <div class="summary-card running"><div class="label">執行中</div><div class="value" id="cnt-running">—</div></div>
+      <div class="summary-card error">  <div class="label">異常中斷</div><div class="value" id="cnt-error">—</div></div>
+      <div class="summary-card offline"><div class="label">離線/關閉</div><div class="value" id="cnt-offline">—</div></div>
+      <div class="summary-card total">  <div class="label">裝置總數</div><div class="value" id="cnt-total">—</div></div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>使用者</th>
+            <th>狀態</th>
+            <th>刷場</th>
+            <th>存金幣</th>
+            <th>修裝備</th>
+            <th>最後回報</th>
+            <th>錯誤訊息</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr><td colspan="7" class="empty">載入中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── 設定（部署後修改這裡）──────────────────────────────
+const EDGE_URL = "https://tdlkrbilsghpqjbsvqzl.supabase.co/functions/v1/monitor_status";
+// ────────────────────────────────────────────────────────
+
+const OFFLINE_MINUTES = 15;   // 超過幾分鐘沒回報視為離線
+const REFRESH_SEC     = 30;   // 自動重新整理間隔
+
+let password = "";
+let refreshTimer = null;
+
+// ── Login ────────────────────────────────────────────────
+const loginScreen  = document.getElementById("login-screen");
+const dashboard    = document.getElementById("dashboard");
+const pwInput      = document.getElementById("pw-input");
+const loginBtn     = document.getElementById("login-btn");
+const loginError   = document.getElementById("login-error");
+
+// 記住 session（關分頁就清掉）
+const saved = sessionStorage.getItem("monitor_pw");
+if (saved) { password = saved; showDashboard(); }
+
+pwInput.addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+loginBtn.addEventListener("click", doLogin);
+
+async function doLogin() {
+  const pw = pwInput.value.trim();
+  if (!pw) return;
+  loginBtn.disabled = true;
+  loginBtn.innerHTML = '<span class="spinner"></span>驗證中...';
+  loginError.textContent = "";
+
+  const ok = await fetchStatus(pw);
+  if (ok) {
+    password = pw;
+    sessionStorage.setItem("monitor_pw", pw);
+    showDashboard();
+  } else {
+    loginError.textContent = "密碼錯誤或無法連線";
+    loginBtn.disabled = false;
+    loginBtn.textContent = "登入";
+  }
+}
+
+function showDashboard() {
+  loginScreen.style.display = "none";
+  dashboard.style.display = "flex";
+  fetchStatus(password);
+  startAutoRefresh();
+}
+
+document.getElementById("logout-btn").addEventListener("click", () => {
+  sessionStorage.removeItem("monitor_pw");
+  clearAutoRefresh();
+  password = "";
+  loginScreen.style.display = "flex";
+  dashboard.style.display = "none";
+  pwInput.value = "";
+  loginBtn.disabled = false;
+  loginBtn.textContent = "登入";
+});
+
+document.getElementById("refresh-btn").addEventListener("click", () => {
+  clearAutoRefresh();
+  fetchStatus(password);
+  startAutoRefresh();
+});
+
+// ── Auto refresh ─────────────────────────────────────────
+function startAutoRefresh() {
+  clearAutoRefresh();
+  refreshTimer = setTimeout(() => { fetchStatus(password); startAutoRefresh(); }, REFRESH_SEC * 1000);
+}
+function clearAutoRefresh() {
+  if (refreshTimer) { clearTimeout(refreshTimer); refreshTimer = null; }
+}
+
+// ── Fetch ────────────────────────────────────────────────
+const refreshStatus = document.getElementById("refresh-status");
+
+async function fetchStatus(pw) {
+  refreshStatus.className = "";
+  refreshStatus.innerHTML = '<span class="spinner"></span>更新中...';
+  try {
+    const res = await fetch(EDGE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: pw }),
+    });
+    if (res.status === 401) {
+      refreshStatus.className = "err";
+      refreshStatus.textContent = "密碼錯誤";
+      return false;
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderTable(data.rows ?? []);
+    const now = new Date().toLocaleTimeString("zh-TW");
+    refreshStatus.className = "ok";
+    refreshStatus.textContent = `更新於 ${now}`;
+    return true;
+  } catch (e) {
+    refreshStatus.className = "err";
+    refreshStatus.textContent = "連線失敗";
+    return false;
+  }
+}
+
+// ── Render ───────────────────────────────────────────────
+function renderTable(rows) {
+  const tbody = document.getElementById("table-body");
+
+  // summary
+  const now = Date.now();
+  let cntRunning = 0, cntError = 0, cntOffline = 0;
+
+  rows.forEach(r => {
+    const minsAgo = (now - new Date(r.last_seen).getTime()) / 60000;
+    const isOffline = minsAgo > OFFLINE_MINUTES;
+    if (isOffline || r.status === "closed") cntOffline++;
+    else if (r.status === "running") cntRunning++;
+    else if (r.status === "error") cntError++;
+    else cntOffline++;
+  });
+
+  document.getElementById("cnt-running").textContent = cntRunning;
+  document.getElementById("cnt-error").textContent   = cntError;
+  document.getElementById("cnt-offline").textContent = cntOffline;
+  document.getElementById("cnt-total").textContent   = rows.length;
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">目前沒有任何裝置回報過資料</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => {
+    const minsAgo  = (now - new Date(r.last_seen).getTime()) / 60000;
+    const isOffline = minsAgo > OFFLINE_MINUTES;
+    const effectiveStatus = isOffline ? "offline" : r.status;
+    const badgeLabel = { running: "執行中", closed: "已關閉", error: "異常", offline: "離線" }[effectiveStatus] ?? effectiveStatus;
+
+    return `<tr>
+      <td>
+        <div style="font-weight:500">${esc(r.user_name || "—")}</div>
+        <div class="mono">${esc(r.machine_id.slice(0,8))}…</div>
+      </td>
+      <td><span class="badge badge-${effectiveStatus}">${badgeLabel}</span></td>
+      <td>${r.runs_count}</td>
+      <td>${r.deposits_count}</td>
+      <td>${r.repairs_count}</td>
+      <td class="dim" title="${esc(r.last_seen)}">${relTime(r.last_seen)}</td>
+      <td>${r.error_msg ? `<span class="err-msg" title="${esc(r.error_msg)}">${esc(r.error_msg)}</span>` : '<span class="dim">—</span>'}</td>
+    </tr>`;
+  }).join("");
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function relTime(iso) {
+  const d = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (d < 60)   return `${Math.round(d)} 秒前`;
+  if (d < 3600) return `${Math.round(d/60)} 分鐘前`;
+  if (d < 86400)return `${Math.round(d/3600)} 小時前`;
+  return `${Math.round(d/86400)} 天前`;
+}
+</script>
+</body>
+</html>
