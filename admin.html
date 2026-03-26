@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mabi-Auto 授權管理</title>
+<style>
+/* ── Reset & Variables ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #0d1117;
+  --surf:    #161b22;
+  --card:    #1c2128;
+  --border:  #30363d;
+  --text:    #e6edf3;
+  --dim:     #8b949e;
+  --green:   #3fb950;
+  --yellow:  #d29922;
+  --red:     #f85149;
+  --gray:    #6e7681;
+  --blue:    #58a6ff;
+  --r:       10px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", "Microsoft JhengHei", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ═══════════════════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════════════════ */
+#login {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 340px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-icon { font-size: 36px; text-align: center; }
+
+.login-box h1 {
+  font-size: 17px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.login-box p {
+  font-size: 13px;
+  color: var(--dim);
+  text-align: center;
+  margin-top: -8px;
+}
+
+.login-box input {
+  background: #21262d;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 15px;
+  padding: 11px 13px;
+  width: 100%;
+  outline: none;
+  transition: border-color .15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.login-box input:focus { border-color: var(--blue); }
+
+.login-box button {
+  background: #238636;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px;
+  width: 100%;
+  transition: opacity .15s;
+}
+.login-box button:hover  { opacity: .85; }
+.login-box button:active { opacity: .7; }
+.login-box button:disabled { background: #444; cursor: default; opacity: 1; }
+
+.login-err {
+  font-size: 13px;
+  color: var(--red);
+  text-align: center;
+  min-height: 18px;
+}
+
+/* ═══════════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════════ */
+#dash { display: none; flex-direction: column; flex: 1; }
+
+/* ── Header ──────────────────────────────────────── */
+header {
+  background: var(--surf);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.h-title {
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.h-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Buttons ─────────────────────────────────────── */
+.btn {
+  background: #21262d;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 5px 11px;
+  white-space: nowrap;
+  transition: background .12s;
+  line-height: 1.4;
+}
+.btn:hover  { background: #30363d; }
+.btn:active { background: #3d444d; }
+
+.btn-green {
+  background: #238636;
+  border-color: #238636;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 7px 14px;
+}
+.btn-green:hover  { background: #2ea043; border-color: #2ea043; }
+
+.btn-red {
+  background: rgba(248,81,73,.12);
+  border-color: rgba(248,81,73,.4);
+  color: var(--red);
+}
+.btn-red:hover  { background: rgba(248,81,73,.22); }
+
+.btn-icon {
+  padding: 4px 8px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* ── Main ────────────────────────────────────────── */
+main {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Summary strip ───────────────────────────────── */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+@media (min-width: 600px) {
+  .summary { grid-template-columns: repeat(4, 1fr); }
+}
+
+.scard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.scard-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.scard.s-active  .scard-dot { background: var(--green); }
+.scard.s-inactive .scard-dot { background: var(--gray); }
+.scard.s-expired  .scard-dot { background: var(--red); }
+.scard.s-unbound  .scard-dot { background: var(--yellow); }
+
+.scard-val {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+}
+.scard.s-active  .scard-val { color: var(--green); }
+.scard.s-inactive .scard-val { color: var(--gray); }
+.scard.s-expired  .scard-val { color: var(--red); }
+.scard.s-unbound  .scard-val { color: var(--yellow); }
+
+.scard-label {
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 2px;
+}
+
+/* ── Toolbar ─────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.search-wrap {
+  flex: 1;
+  min-width: 140px;
+}
+
+.search-wrap input {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 7px 11px;
+  width: 100%;
+  outline: none;
+  transition: border-color .15s;
+}
+.search-wrap input:focus { border-color: var(--blue); }
+.search-wrap input::placeholder { color: var(--dim); }
+
+/* ── Table wrapper ───────────────────────────────── */
+.tbl-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 420px;
+}
+
+thead th {
+  background: var(--surf);
+  border-bottom: 1px solid var(--border);
+  color: var(--dim);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  padding: 10px 14px;
+  text-align: left;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background .1s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(255,255,255,.03); }
+
+td {
+  padding: 11px 14px;
+  vertical-align: middle;
+  font-size: 13px;
+}
+
+.col-extra  { display: none; }
+.col-extra2 { display: none; }
+
+@media (min-width: 640px)  { .col-extra  { display: table-cell; } }
+@media (min-width: 960px)  { .col-extra2 { display: table-cell; } }
+
+/* ── Cell styles ─────────────────────────────────── */
+.user-cell strong {
+  font-weight: 600;
+  display: block;
+}
+.key-preview {
+  font-family: "Consolas", monospace;
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 20px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.badge-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.b-running  { background: rgba(63,185,80,.15);  color: var(--green);  }
+.b-running .badge-dot  { background: var(--green); animation: pulse 1.4s ease-in-out infinite; }
+.b-warning  { background: rgba(210,153,34,.15); color: var(--yellow); }
+.b-warning .badge-dot  { background: var(--yellow); animation: pulse 2s ease-in-out infinite; }
+.b-error    { background: rgba(248,81,73,.15);  color: var(--red);    }
+.b-error .badge-dot    { background: var(--red); }
+.b-offline  { background: rgba(110,118,129,.12); color: var(--gray);  }
+.b-offline .badge-dot  { background: var(--gray); }
+.b-unbound  { background: rgba(88,166,255,.1);  color: var(--blue);   }
+.b-unbound .badge-dot  { background: var(--blue); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .25; }
+}
+
+.expire-ok   { color: var(--dim); }
+.expire-soon { color: var(--yellow); font-weight: 600; }
+.expire-past { color: var(--red); }
+.expire-none { color: var(--dim); }
+
+/* Toggle switch */
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 34px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #444;
+  border-radius: 20px;
+  transition: background .2s;
+}
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  width: 14px; height: 14px;
+  left: 3px; bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform .2s;
+}
+.toggle input:checked + .toggle-slider { background: #238636; }
+.toggle input:checked + .toggle-slider::before { transform: translateX(14px); }
+
+.actions { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; }
+
+/* Empty */
+.empty-row td {
+  text-align: center;
+  padding: 48px;
+  color: var(--dim);
+  font-size: 13px;
+}
+
+/* ── Spinner ──────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 12px; height: 12px;
+  border: 2px solid var(--border);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ═══════════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════════ */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+.overlay.open {
+  display: flex;
+}
+
+@media (min-width: 540px) {
+  .overlay { align-items: center; padding: 24px; }
+}
+
+.modal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px 16px 0 0;
+  width: 100%;
+  max-width: 460px;
+  padding: 24px 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+
+@media (min-width: 540px) {
+  .modal { border-radius: 16px; max-height: 80dvh; }
+}
+
+.modal h2 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.field input, .field select {
+  background: #21262d;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  padding: 10px 12px;
+  width: 100%;
+  outline: none;
+  transition: border-color .15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field input:focus, .field select:focus { border-color: var(--blue); }
+
+.field-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.field-hint {
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.modal-footer .btn-cancel {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--dim);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 9px 16px;
+  transition: background .12s;
+}
+.modal-footer .btn-cancel:hover { background: var(--surf); color: var(--text); }
+
+.modal-footer .btn-submit {
+  background: #238636;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 20px;
+  transition: opacity .15s;
+}
+.modal-footer .btn-submit:hover    { opacity: .85; }
+.modal-footer .btn-submit:disabled { background: #444; cursor: default; opacity: 1; }
+
+.modal-footer .btn-danger {
+  background: rgba(248,81,73,.15);
+  border: 1px solid rgba(248,81,73,.4);
+  border-radius: 8px;
+  color: var(--red);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 16px;
+  transition: background .12s;
+}
+.modal-footer .btn-danger:hover { background: rgba(248,81,73,.25); }
+
+/* New key display after create */
+.key-display {
+  background: #21262d;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: "Consolas", monospace;
+  font-size: 13px;
+  word-break: break-all;
+  color: var(--green);
+}
+
+/* ═══════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════ */
+#toast-wrap {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 500;
+  pointer-events: none;
+  width: calc(100% - 32px);
+  max-width: 380px;
+}
+
+.toast {
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  animation: slideUp .2s ease-out;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.toast.t-ok  { border-color: rgba(63,185,80,.5);  color: var(--green);  }
+.toast.t-err { border-color: rgba(248,81,73,.5);  color: var(--red);    }
+.toast.t-info { border-color: rgba(88,166,255,.4); color: var(--blue);  }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Larger screens ──────────────────────────────── */
+@media (min-width: 720px) {
+  main { padding: 20px; gap: 16px; }
+  td, thead th { padding: 12px 16px; }
+}
+@media (min-width: 1024px) {
+  main { padding: 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ LOGIN ════════════════════ -->
+<div id="login">
+  <div class="login-box">
+    <div class="login-icon">🔑</div>
+    <h1>授權管理</h1>
+    <p>輸入管理員密碼以繼續</p>
+    <input id="pw" type="password" placeholder="管理員密碼" autocomplete="current-password">
+    <button id="login-btn">登入</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ DASHBOARD ════════════════════ -->
+<div id="dash">
+  <header>
+    <div class="h-title">🔑 授權管理</div>
+    <div class="h-right">
+      <button class="btn btn-green" id="new-btn">＋ 新增授權</button>
+      <button class="btn" id="logout-btn">登出</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Summary -->
+    <div class="summary">
+      <div class="scard s-active">
+        <div class="scard-dot"></div>
+        <div class="scard-body">
+          <div class="scard-val" id="cnt-active">—</div>
+          <div class="scard-label">啟用中</div>
+        </div>
+      </div>
+      <div class="scard s-unbound">
+        <div class="scard-dot"></div>
+        <div class="scard-body">
+          <div class="scard-val" id="cnt-unbound">—</div>
+          <div class="scard-label">未綁定裝置</div>
+        </div>
+      </div>
+      <div class="scard s-expired">
+        <div class="scard-dot"></div>
+        <div class="scard-body">
+          <div class="scard-val" id="cnt-expired">—</div>
+          <div class="scard-label">已到期</div>
+        </div>
+      </div>
+      <div class="scard s-inactive">
+        <div class="scard-dot"></div>
+        <div class="scard-body">
+          <div class="scard-val" id="cnt-inactive">—</div>
+          <div class="scard-label">已停用</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <input id="search" type="text" placeholder="搜尋使用者名稱...">
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>使用者</th>
+            <th class="col-extra">授權 Key</th>
+            <th>裝置狀態</th>
+            <th class="col-extra2">到期日</th>
+            <th class="col-extra2">建立日期</th>
+            <th>啟用</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr class="empty-row"><td colspan="7">載入中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- ════════════════════ MODAL ════════════════════ -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal">
+    <h2 id="modal-title">新增授權</h2>
+
+    <!-- 新增成功後顯示 key -->
+    <div id="created-section" style="display:none; flex-direction:column; gap:10px;">
+      <p style="color:var(--dim); font-size:13px;">授權已建立，請複製以下 Key 給使用者：</p>
+      <div class="key-display" id="created-key"></div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="copyCreatedKey()">📋 複製 Key</button>
+        <button class="btn-submit" onclick="closeModal()">完成</button>
+      </div>
+    </div>
+
+    <!-- 表單 -->
+    <div id="form-section">
+      <div style="display:flex; flex-direction:column; gap:14px;" id="form-fields">
+        <div class="field">
+          <label>使用者名稱</label>
+          <input id="f-name" type="text" placeholder="輸入使用者名稱">
+        </div>
+        <div class="field">
+          <label>到期日</label>
+          <div class="field-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--text); text-transform:none; letter-spacing:0;">
+              <input type="checkbox" id="f-permanent" style="width:auto; accent-color:var(--blue);">
+              永久授權
+            </label>
+          </div>
+          <input id="f-expires" type="date" style="margin-top:6px;">
+          <span class="field-hint">不填日期視為永久</span>
+        </div>
+        <!-- is_active 只在編輯時顯示 -->
+        <div class="field" id="f-active-wrap" style="display:none;">
+          <label>狀態</label>
+          <div class="field-row" style="gap:10px;">
+            <label class="toggle">
+              <input type="checkbox" id="f-active" checked>
+              <span class="toggle-slider"></span>
+            </label>
+            <span id="f-active-label" style="font-size:13px; color:var(--dim);">啟用中</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="margin-top:20px;" id="modal-footer">
+        <button class="btn-cancel" onclick="closeModal()">取消</button>
+        <button class="btn-submit" id="modal-submit-btn" onclick="submitModal()">建立</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ CONFIRM ════════════════════ -->
+<div class="overlay" id="confirm-overlay">
+  <div class="modal" style="gap:14px; max-width:380px;">
+    <h2 id="confirm-title">確認操作</h2>
+    <p id="confirm-msg" style="font-size:13px; color:var(--dim); line-height:1.6;"></p>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeConfirm()">取消</button>
+      <button class="btn-danger" id="confirm-ok-btn">確認</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ TOAST ════════════════════ -->
+<div id="toast-wrap"></div>
+
+<script>
+// ── 設定 ──────────────────────────────────────────
+const API_BASE    = "https://mabi-auto-api.mabi-auto.workers.dev";
+const OFFLINE_MIN = 12;
+// ─────────────────────────────────────────────────
+
+let adminToken = sessionStorage.getItem("admin_token") || "";
+let allLicenses = [];
+let editingId   = null;   // 編輯模式時的 license id
+
+// ── DOM refs ───────────────────────────────────────
+const $login    = document.getElementById("login");
+const $dash     = document.getElementById("dash");
+const $pw       = document.getElementById("pw");
+const $loginBtn = document.getElementById("login-btn");
+const $loginErr = document.getElementById("login-err");
+const $tbody    = document.getElementById("tbody");
+const $search   = document.getElementById("search");
+
+// ── Session restore ───────────────────────────────
+if (adminToken) { showDash(); loadData(); }
+
+$pw.addEventListener("keydown", e => e.key === "Enter" && doLogin());
+$loginBtn.addEventListener("click", doLogin);
+
+document.getElementById("logout-btn").addEventListener("click", () => {
+  sessionStorage.removeItem("admin_token");
+  adminToken = "";
+  allLicenses = [];
+  $login.style.display = "flex";
+  $dash.style.display  = "none";
+  $pw.value = "";
+  $loginBtn.disabled = false;
+  $loginBtn.textContent = "登入";
+});
+
+document.getElementById("new-btn").addEventListener("click", openCreateModal);
+
+$search.addEventListener("input", () => renderTable(filtered()));
+
+// ── Login ─────────────────────────────────────────
+async function doLogin() {
+  const val = $pw.value.trim();
+  if (!val) return;
+  $loginBtn.disabled = true;
+  $loginBtn.innerHTML = '<span class="spinner"></span>驗證中...';
+  $loginErr.textContent = "";
+
+  adminToken = val;
+  const ok = await loadData();
+  if (ok) {
+    sessionStorage.setItem("admin_token", adminToken);
+    showDash();
+  } else {
+    adminToken = "";
+    $loginErr.textContent = "密碼錯誤或無法連線";
+    $loginBtn.disabled = false;
+    $loginBtn.textContent = "登入";
+  }
+}
+
+function showDash() {
+  $login.style.display = "none";
+  $dash.style.display  = "flex";
+}
+
+// ── API ───────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${adminToken}`,
+    },
+  };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const res = await fetch(API_BASE + path, opts);
+  if (res.status === 401) throw new Error("unauthorized");
+  if (!res.ok) {
+    const j = await res.json().catch(() => ({}));
+    throw new Error(j.error || res.status);
+  }
+  return res.json().catch(() => ({}));
+}
+
+// ── Load ──────────────────────────────────────────
+async function loadData() {
+  try {
+    const data = await api("GET", "/admin/licenses");
+    allLicenses = data.licenses ?? [];
+    renderSummary(allLicenses);
+    renderTable(filtered());
+    return true;
+  } catch(e) {
+    if (e.message === "unauthorized") return false;
+    toast("載入失敗：" + e.message, "err");
+    return false;
+  }
+}
+
+// ── Filter ────────────────────────────────────────
+function filtered() {
+  const q = $search.value.trim().toLowerCase();
+  if (!q) return allLicenses;
+  return allLicenses.filter(l =>
+    (l.user_name || "").toLowerCase().includes(q) ||
+    (l.key || "").toLowerCase().includes(q)
+  );
+}
+
+// ── Summary ───────────────────────────────────────
+function renderSummary(rows) {
+  let active = 0, unbound = 0, expired = 0, inactive = 0;
+  rows.forEach(l => {
+    if (!l.is_active) { inactive++; return; }
+    if (isExpired(l.expires_at)) { expired++; return; }
+    if (!l.machine_id) unbound++;
+    active++;
+  });
+  document.getElementById("cnt-active").textContent   = active;
+  document.getElementById("cnt-unbound").textContent  = unbound;
+  document.getElementById("cnt-expired").textContent  = expired;
+  document.getElementById("cnt-inactive").textContent = inactive;
+}
+
+// ── Table ─────────────────────────────────────────
+function renderTable(rows) {
+  if (rows.length === 0) {
+    $tbody.innerHTML = '<tr class="empty-row"><td colspan="7">沒有資料</td></tr>';
+    return;
+  }
+
+  $tbody.innerHTML = rows.map(l => {
+    const deviceBadge = makeDeviceBadge(l);
+    const expireHtml  = makeExpireHtml(l.expires_at);
+    const createdHtml = fmtDate(l.created_at);
+    const keyPreview  = (l.key || "").slice(0, 8) + "…";
+    const unbindBtn   = l.machine_id
+      ? `<button class="btn btn-icon" title="解綁裝置" onclick="confirmUnbind('${esc(l.id)}','${esc(l.user_name||"未命名")}')">🔓</button>`
+      : `<button class="btn btn-icon" disabled style="opacity:.3;" title="尚未綁定">🔓</button>`;
+
+    return `<tr>
+      <td>
+        <div class="user-cell">
+          <strong>${esc(l.user_name || "未命名")}</strong>
+        </div>
+      </td>
+      <td class="col-extra">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="key-preview">${esc(keyPreview)}</span>
+          <button class="btn btn-icon" title="複製完整 Key" onclick="copyKey('${esc(l.key)}')">📋</button>
+        </div>
+      </td>
+      <td>${deviceBadge}</td>
+      <td class="col-extra2">${expireHtml}</td>
+      <td class="col-extra2" style="color:var(--dim); font-size:12px;">${createdHtml}</td>
+      <td>
+        <label class="toggle">
+          <input type="checkbox" ${l.is_active ? "checked" : ""}
+            onchange="toggleActive('${esc(l.id)}', this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+      <td>
+        <div class="actions">
+          <button class="btn btn-icon" title="編輯" onclick="openEditModal('${esc(l.id)}')">✏️</button>
+          ${unbindBtn}
+          <button class="btn btn-icon btn-red" title="刪除" onclick="confirmDelete('${esc(l.id)}','${esc(l.user_name||"未命名")}')">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+// ── Badge / helpers ───────────────────────────────
+function makeDeviceBadge(l) {
+  if (!l.machine_id) {
+    return `<span class="badge b-unbound"><span class="badge-dot"></span>未綁定</span>`;
+  }
+  if (!l.m_last_seen) {
+    return `<span class="badge b-offline"><span class="badge-dot"></span>離線</span>`;
+  }
+  const mins = (Date.now() - new Date(l.m_last_seen)) / 60000;
+  const s = mins > OFFLINE_MIN ? "offline" : (l.m_status || "offline");
+  const LABELS = { running:"執行中", warning:"警告", error:"異常", offline:"離線" };
+  return `<span class="badge b-${s}"><span class="badge-dot"></span>${esc(LABELS[s]??s)}</span>`;
+}
+
+function makeExpireHtml(expires_at) {
+  if (!expires_at) return `<span class="expire-none">永久</span>`;
+  const d    = new Date(expires_at);
+  const now  = new Date();
+  const days = Math.ceil((d - now) / 86400000);
+  if (days < 0)  return `<span class="expire-past">已到期 ${fmtDate(expires_at)}</span>`;
+  if (days <= 7) return `<span class="expire-soon">${fmtDate(expires_at)} (${days}天後)</span>`;
+  return `<span class="expire-ok">${fmtDate(expires_at)}</span>`;
+}
+
+function isExpired(expires_at) {
+  return expires_at && new Date(expires_at) < new Date();
+}
+
+function fmtDate(iso) {
+  if (!iso) return "—";
+  return iso.slice(0, 10);
+}
+
+// ── Copy ──────────────────────────────────────────
+function copyKey(key) {
+  navigator.clipboard.writeText(key)
+    .then(() => toast("已複製 Key", "ok"))
+    .catch(() => toast("複製失敗，請手動複製", "err"));
+}
+
+function copyCreatedKey() {
+  const key = document.getElementById("created-key").textContent;
+  navigator.clipboard.writeText(key)
+    .then(() => toast("已複製 Key", "ok"))
+    .catch(() => {});
+}
+
+// ── Toggle active ──────────────────────────────────
+async function toggleActive(id, checked) {
+  try {
+    await api("PATCH", `/admin/licenses/${id}`, { is_active: checked ? 1 : 0 });
+    const l = allLicenses.find(x => x.id === id);
+    if (l) l.is_active = checked ? 1 : 0;
+    renderSummary(allLicenses);
+    toast(checked ? "已啟用" : "已停用", "ok");
+  } catch(e) {
+    toast("操作失敗：" + e.message, "err");
+    await loadData(); // 還原 UI
+  }
+}
+
+// ── Modal: Create ─────────────────────────────────
+function openCreateModal() {
+  editingId = null;
+  document.getElementById("modal-title").textContent = "新增授權";
+  document.getElementById("f-name").value     = "";
+  document.getElementById("f-expires").value  = "";
+  document.getElementById("f-permanent").checked = false;
+  document.getElementById("f-active-wrap").style.display = "none";
+  document.getElementById("modal-submit-btn").textContent = "建立";
+  document.getElementById("form-section").style.display  = "flex";
+  document.getElementById("form-section").style.flexDirection = "column";
+  document.getElementById("created-section").style.display   = "none";
+  togglePermanent();
+  openOverlay("overlay");
+  setTimeout(() => document.getElementById("f-name").focus(), 50);
+}
+
+// ── Modal: Edit ───────────────────────────────────
+function openEditModal(id) {
+  const l = allLicenses.find(x => x.id === id);
+  if (!l) return;
+  editingId = id;
+  document.getElementById("modal-title").textContent = "編輯授權";
+  document.getElementById("f-name").value     = l.user_name || "";
+  document.getElementById("f-expires").value  = l.expires_at ? l.expires_at.slice(0,10) : "";
+  document.getElementById("f-permanent").checked = !l.expires_at;
+  document.getElementById("f-active-wrap").style.display = "flex";
+  const activeCheck = document.getElementById("f-active");
+  activeCheck.checked = !!l.is_active;
+  updateActiveLabel();
+  document.getElementById("modal-submit-btn").textContent = "儲存";
+  document.getElementById("form-section").style.display  = "flex";
+  document.getElementById("form-section").style.flexDirection = "column";
+  document.getElementById("created-section").style.display   = "none";
+  togglePermanent();
+  openOverlay("overlay");
+  setTimeout(() => document.getElementById("f-name").focus(), 50);
+}
+
+function togglePermanent() {
+  const perm = document.getElementById("f-permanent").checked;
+  document.getElementById("f-expires").style.opacity = perm ? ".3" : "1";
+  document.getElementById("f-expires").disabled = perm;
+}
+
+function updateActiveLabel() {
+  const on = document.getElementById("f-active").checked;
+  document.getElementById("f-active-label").textContent = on ? "啟用中" : "已停用";
+}
+
+document.getElementById("f-permanent").addEventListener("change", togglePermanent);
+document.getElementById("f-active").addEventListener("change", updateActiveLabel);
+
+// ── Modal: Submit ─────────────────────────────────
+async function submitModal() {
+  const btn  = document.getElementById("modal-submit-btn");
+  const name = document.getElementById("f-name").value.trim();
+  if (!name) { toast("請輸入使用者名稱", "err"); return; }
+
+  const perm       = document.getElementById("f-permanent").checked;
+  const expiresVal = document.getElementById("f-expires").value;
+  const expires_at = perm || !expiresVal ? null : expiresVal + "T00:00:00.000Z";
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>處理中...';
+
+  try {
+    if (editingId) {
+      // Edit
+      const body = {
+        user_name:  name,
+        is_active:  document.getElementById("f-active").checked ? 1 : 0,
+        expires_at,
+      };
+      await api("PATCH", `/admin/licenses/${editingId}`, body);
+      toast("已儲存", "ok");
+      closeModal();
+      await loadData();
+    } else {
+      // Create
+      const data = await api("POST", "/admin/licenses", { user_name: name, expires_at });
+      // Show created key
+      document.getElementById("created-key").textContent = data.key;
+      document.getElementById("form-section").style.display    = "none";
+      document.getElementById("created-section").style.display = "flex";
+      await loadData();
+    }
+  } catch(e) {
+    toast("操作失敗：" + e.message, "err");
+    btn.disabled = false;
+    btn.innerHTML = editingId ? "儲存" : "建立";
+  }
+}
+
+// ── Modal: close ─────────────────────────────────
+function closeModal() {
+  document.getElementById("overlay").classList.remove("open");
+  editingId = null;
+}
+
+// ── Confirm: Unbind ───────────────────────────────
+function confirmUnbind(id, name) {
+  showConfirm(
+    "解綁裝置",
+    `確定要解綁「${name}」的裝置綁定嗎？\n解綁後使用者可在新電腦重新授權。`,
+    async () => {
+      try {
+        await api("PATCH", `/admin/licenses/${id}`, { machine_id: null });
+        toast("已解綁裝置", "ok");
+        await loadData();
+      } catch(e) {
+        toast("操作失敗：" + e.message, "err");
+      }
+    }
+  );
+}
+
+// ── Confirm: Delete ───────────────────────────────
+function confirmDelete(id, name) {
+  showConfirm(
+    "刪除授權",
+    `確定要刪除「${name}」的授權嗎？\n此操作無法復原，使用者將立即無法登入。`,
+    async () => {
+      try {
+        await api("DELETE", `/admin/licenses/${id}`);
+        toast("已刪除授權", "ok");
+        await loadData();
+      } catch(e) {
+        toast("操作失敗：" + e.message, "err");
+      }
+    }
+  );
+}
+
+// ── Confirm dialog ────────────────────────────────
+let _confirmCb = null;
+function showConfirm(title, msg, cb) {
+  document.getElementById("confirm-title").textContent = title;
+  document.getElementById("confirm-msg").textContent   = msg;
+  _confirmCb = cb;
+  openOverlay("confirm-overlay");
+}
+function closeConfirm() {
+  document.getElementById("confirm-overlay").classList.remove("open");
+  _confirmCb = null;
+}
+document.getElementById("confirm-ok-btn").addEventListener("click", async () => {
+  if (_confirmCb) { const fn = _confirmCb; _confirmCb = null; await fn(); }
+  closeConfirm();
+});
+
+// Close overlay on backdrop click
+document.querySelectorAll(".overlay").forEach(el => {
+  el.addEventListener("click", e => {
+    if (e.target === el) {
+      el.classList.remove("open");
+      _confirmCb = null;
+    }
+  });
+});
+
+function openOverlay(id) {
+  document.getElementById(id).classList.add("open");
+}
+
+// ── Toast ─────────────────────────────────────────
+function toast(msg, type = "info") {
+  const el = document.createElement("div");
+  el.className = `toast t-${type}`;
+  const icon = type === "ok" ? "✓" : type === "err" ? "✕" : "ℹ";
+  el.innerHTML = `<span>${icon}</span> ${esc(msg)}`;
+  const wrap = document.getElementById("toast-wrap");
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ── Helpers ───────────────────────────────────────
+function esc(s) {
+  return String(s ?? "")
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+</script>
+</body>
+</html>
