@@ -726,6 +726,11 @@ td {
           <input id="f-expires" type="date" style="margin-top:6px;">
           <span class="field-hint">不填日期視為永久</span>
         </div>
+        <div class="field">
+          <label>監控頁密碼 <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--dim);">（選填）</span></label>
+          <input id="f-viewer-pw" type="text" placeholder="留空則無法登入監控頁">
+          <span class="field-hint">多筆授權填相同密碼可共用同一個監控檢視</span>
+        </div>
         <!-- is_active 只在編輯時顯示 -->
         <div class="field" id="f-active-wrap" style="display:none;">
           <label>狀態</label>
@@ -1029,8 +1034,9 @@ async function toggleActive(id, checked) {
 function openCreateModal() {
   editingId = null;
   document.getElementById("modal-title").textContent = "新增授權";
-  document.getElementById("f-name").value     = "";
-  document.getElementById("f-expires").value  = "";
+  document.getElementById("f-name").value      = "";
+  document.getElementById("f-expires").value   = "";
+  document.getElementById("f-viewer-pw").value = "";
   document.getElementById("f-permanent").checked = false;
   document.getElementById("f-active-wrap").style.display = "none";
   document.getElementById("modal-submit-btn").textContent = "建立";
@@ -1048,8 +1054,9 @@ function openEditModal(id) {
   if (!l) return;
   editingId = id;
   document.getElementById("modal-title").textContent = "編輯授權";
-  document.getElementById("f-name").value     = l.user_name || "";
-  document.getElementById("f-expires").value  = l.expires_at ? l.expires_at.slice(0,10) : "";
+  document.getElementById("f-name").value      = l.user_name || "";
+  document.getElementById("f-expires").value   = l.expires_at ? l.expires_at.slice(0,10) : "";
+  document.getElementById("f-viewer-pw").value = l.viewer_password || "";
   document.getElementById("f-permanent").checked = !l.expires_at;
   document.getElementById("f-active-wrap").style.display = "flex";
   const activeCheck = document.getElementById("f-active");
@@ -1084,9 +1091,11 @@ async function submitModal() {
   const name = document.getElementById("f-name").value.trim();
   if (!name) { toast("請輸入使用者名稱", "err"); return; }
 
-  const perm       = document.getElementById("f-permanent").checked;
-  const expiresVal = document.getElementById("f-expires").value;
-  const expires_at = perm || !expiresVal ? null : expiresVal + "T00:00:00.000Z";
+  const perm        = document.getElementById("f-permanent").checked;
+  const expiresVal  = document.getElementById("f-expires").value;
+  const expires_at  = perm || !expiresVal ? null : expiresVal + "T00:00:00.000Z";
+  const viewerPwVal = document.getElementById("f-viewer-pw").value.trim();
+  const viewer_password = viewerPwVal || null;
 
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>處理中...';
@@ -1098,6 +1107,7 @@ async function submitModal() {
         user_name:  name,
         is_active:  document.getElementById("f-active").checked ? 1 : 0,
         expires_at,
+        viewer_password,
       };
       await api("PATCH", `/admin/licenses/${editingId}`, body);
       toast("已儲存", "ok");
@@ -1105,7 +1115,7 @@ async function submitModal() {
       await loadData();
     } else {
       // Create
-      const data = await api("POST", "/admin/licenses", { user_name: name, expires_at });
+      const data = await api("POST", "/admin/licenses", { user_name: name, expires_at, viewer_password });
       // Show created key
       document.getElementById("created-key").textContent = data.key;
       document.getElementById("form-section").style.display    = "none";
