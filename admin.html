@@ -809,12 +809,20 @@ async function doLogin() {
   $loginBtn.innerHTML = '<span class="spinner"></span>驗證中...';
   $loginErr.textContent = "";
 
-  adminToken = val;
-  const ok = await loadData();
-  if (ok) {
+  try {
+    // 用密碼換 JWT（密碼只送這一次）
+    const res = await fetch(API_BASE + "/admin/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: val }),
+    });
+    if (!res.ok) throw new Error("unauthorized");
+    const { token } = await res.json();
+    adminToken = token;
     sessionStorage.setItem("admin_token", adminToken);
+    await loadData();
     showDash();
-  } else {
+  } catch {
     adminToken = "";
     $loginErr.textContent = "密碼錯誤或無法連線";
     $loginBtn.disabled = false;
