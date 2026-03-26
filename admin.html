@@ -1039,7 +1039,9 @@ function openCreateModal() {
   document.getElementById("f-viewer-pw").value = "";
   document.getElementById("f-permanent").checked = false;
   document.getElementById("f-active-wrap").style.display = "none";
-  document.getElementById("modal-submit-btn").textContent = "建立";
+  const _sbtn = document.getElementById("modal-submit-btn");
+  _sbtn.textContent = "建立";
+  _sbtn.disabled = false;
   document.getElementById("form-section").style.display  = "flex";
   document.getElementById("form-section").style.flexDirection = "column";
   document.getElementById("created-section").style.display   = "none";
@@ -1062,7 +1064,9 @@ function openEditModal(id) {
   const activeCheck = document.getElementById("f-active");
   activeCheck.checked = !!l.is_active;
   updateActiveLabel();
-  document.getElementById("modal-submit-btn").textContent = "儲存";
+  const _sbtn2 = document.getElementById("modal-submit-btn");
+  _sbtn2.textContent = "儲存";
+  _sbtn2.disabled = false;
   document.getElementById("form-section").style.display  = "flex";
   document.getElementById("form-section").style.flexDirection = "column";
   document.getElementById("created-section").style.display   = "none";
