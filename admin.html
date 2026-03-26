@@ -838,12 +838,33 @@ async function api(method, path, body) {
   };
   if (body !== undefined) opts.body = JSON.stringify(body);
   const res = await fetch(API_BASE + path, opts);
-  if (res.status === 401) throw new Error("unauthorized");
+  if (res.status === 401 || res.status === 403) {
+    // 已登入狀態下收到未授權 → 強制登出並跳回登入頁
+    if ($dash.style.display !== "none") {
+      forceLogout("密碼已失效，請重新登入");
+    }
+    throw new Error("unauthorized");
+  }
   if (!res.ok) {
     const j = await res.json().catch(() => ({}));
     throw new Error(j.error || res.status);
   }
   return res.json().catch(() => ({}));
+}
+
+function forceLogout(msg) {
+  sessionStorage.removeItem("admin_token");
+  adminToken = "";
+  allLicenses = [];
+  // 關閉所有 overlay
+  document.querySelectorAll(".overlay").forEach(el => el.classList.remove("open"));
+  // 切回登入頁
+  $dash.style.display  = "none";
+  $login.style.display = "flex";
+  $pw.value = "";
+  $loginBtn.disabled = false;
+  $loginBtn.textContent = "登入";
+  if (msg) $loginErr.textContent = msg;
 }
 
 // ── Load ──────────────────────────────────────────
