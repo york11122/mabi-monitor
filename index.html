@@ -444,6 +444,8 @@ td {
             <th>使用者</th>
             <th>狀態</th>
             <th>刷場</th>
+            <th class="col-extra">場數/時</th>
+            <th class="col-extra">運行時間</th>
             <th class="col-extra">存金幣</th>
             <th class="col-extra">修裝備</th>
             <th>最後回報</th>
@@ -607,6 +609,8 @@ function render(rows) {
       </td>
       <td>${makeBadge(s)}</td>
       <td><span class="num">${row.runs_count}</span></td>
+      <td class="col-extra"><span class="num">${fmtRph(row.runs_count, row.elapsed_seconds)}</span></td>
+      <td class="col-extra"><span class="num">${fmtElapsed(row.elapsed_seconds)}</span></td>
       <td class="col-extra"><span class="num">${row.deposits_count}</span></td>
       <td class="col-extra"><span class="num">${row.repairs_count}</span></td>
       <td class="time-cell" title="${esc(row.last_seen)}">${relTime(row.last_seen)}</td>
@@ -628,6 +632,19 @@ function relTime(iso) {
   if (s < 3600)  return Math.round(s / 60) + " 分鐘前";
   if (s < 86400) return Math.round(s / 3600) + " 小時前";
   return Math.round(s / 86400) + " 天前";
+}
+
+function fmtElapsed(sec) {
+  if (!sec || sec <= 0) return "—";
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
+
+function fmtRph(runs, sec) {
+  if (!sec || sec <= 0 || !runs) return "—";
+  return (runs / (sec / 3600)).toFixed(1);
 }
 </script>
 </body>
