@@ -448,12 +448,13 @@ td {
             <th class="col-extra">運行時間</th>
             <th class="col-extra">存金幣</th>
             <th class="col-extra">修裝備</th>
+            <th class="col-extra">版本</th>
             <th>最後回報</th>
             <th class="col-extra">訊息</th>
           </tr>
         </thead>
         <tbody id="tbody">
-          <tr class="empty-row"><td colspan="7">載入中...</td></tr>
+          <tr class="empty-row"><td colspan="10">載入中...</td></tr>
         </tbody>
       </table>
     </div>
@@ -593,7 +594,7 @@ function render(rows) {
   document.getElementById("cnt-offline").textContent  = o;
 
   if (rows.length === 0) {
-    $tbody.innerHTML = '<tr class="empty-row"><td colspan="7">尚無裝置資料</td></tr>';
+    $tbody.innerHTML = '<tr class="empty-row"><td colspan="10">尚無裝置資料</td></tr>';
     return;
   }
 
@@ -613,6 +614,7 @@ function render(rows) {
       <td class="col-extra"><span class="num">${fmtElapsed(row.elapsed_seconds)}</span></td>
       <td class="col-extra"><span class="num">${row.deposits_count}</span></td>
       <td class="col-extra"><span class="num">${row.repairs_count}</span></td>
+      <td class="col-extra">${fmtVersion(row.app_version, row.python_version)}</td>
       <td class="time-cell" title="${esc(row.last_seen)}">${relTime(row.last_seen)}</td>
       <td class="col-extra">${err}</td>
     </tr>`;
@@ -620,6 +622,12 @@ function render(rows) {
 }
 
 // ── Helpers ────────────────────────────────────────
+function fmtVersion(app, py) {
+  const a = app || '—';
+  const p = py  || '—';
+  return `<span style="font-size:0.78em;color:var(--dim)" title="App: ${esc(a)} / Python: ${esc(p)}">${esc(a)} / ${esc(p)}</span>`;
+}
+
 function esc(s) {
   return String(s)
     .replace(/&/g,"&amp;").replace(/</g,"&lt;")
