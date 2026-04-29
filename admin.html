@@ -4,122 +4,162 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mabi-Auto 授權管理</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ── Reset & Variables ─────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:      #0d1117;
-  --surf:    #161b22;
-  --card:    #1c2128;
-  --border:  #30363d;
-  --text:    #e6edf3;
-  --dim:     #8b949e;
-  --green:   #3fb950;
-  --yellow:  #d29922;
-  --red:     #f85149;
-  --gray:    #6e7681;
-  --blue:    #58a6ff;
-  --r:       10px;
+  --bg:       #0b0804;
+  --surf:     #131009;
+  --card:     #1a1610;
+  --card2:    #201c14;
+  --border:   #2e261a;
+  --border2:  #3c3222;
+  --text:     #f4f0e8;
+  --sub:      #c8bfad;
+  --dim:      #8a7f6e;
+  --dim2:     #5a5244;
+  --green:    #40d67e;
+  --green-bg: rgba(64,214,126,.08);
+  --yellow:   #f5bc30;
+  --yellow-bg:rgba(245,188,48,.08);
+  --red:      #f25c50;
+  --red-bg:   rgba(242,92,80,.08);
+  --gray:     #7a7060;
+  --gray-bg:  rgba(122,112,96,.08);
+  --blue:     #5aaaf5;
+  --blue-bg:  rgba(90,170,245,.08);
+  --amber:    #c8881e;
+  --amber2:   #f0a830;
+  --amber3:   #ffd080;
+  --r: 12px;
+  --font: 'Noto Sans TC', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', 'Consolas', monospace;
 }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: "Segoe UI", "Microsoft JhengHei", system-ui, sans-serif;
+  font-family: var(--font);
   font-size: 14px;
   line-height: 1.5;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ═══════════════════════════════════════════════════
+/* ══════════════════════════════════════
    LOGIN
-═══════════════════════════════════════════════════ */
+══════════════════════════════════════ */
 #login {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,136,30,.14) 0%, transparent 60%),
+    var(--bg);
 }
 
 .login-box {
   width: 100%;
-  max-width: 340px;
+  max-width: 348px;
   background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 36px 28px;
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 40px 28px 36px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  box-shadow:
+    0 0 0 1px rgba(200,136,30,.1),
+    0 0 60px rgba(200,136,30,.08),
+    0 40px 80px rgba(0,0,0,.7);
 }
 
-.login-icon { font-size: 36px; text-align: center; }
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 6px;
+}
 
-.login-box h1 {
-  font-size: 17px;
+.login-emblem {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(145deg, #201a0c, #2e2414);
+  border: 1px solid rgba(200,136,30,.35);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 24px rgba(200,136,30,.18), inset 0 1px 0 rgba(255,200,80,.08);
+}
+
+.login-brand h1 {
+  font-size: 19px;
   font-weight: 700;
-  text-align: center;
+  letter-spacing: -.02em;
+  color: var(--amber3);
+  text-shadow: 0 0 20px rgba(200,136,30,.4);
 }
 
-.login-box p {
-  font-size: 13px;
-  color: var(--dim);
-  text-align: center;
-  margin-top: -8px;
-}
+.login-sub { font-size: 12px; color: var(--dim); margin-top: -8px; }
 
 .login-box input {
-  background: #21262d;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
+  background: rgba(255,255,255,.04);
+  border: 1.5px solid var(--border2);
+  border-radius: 10px;
   color: var(--text);
-  font-size: 15px;
-  padding: 11px 13px;
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 12px 14px;
   width: 100%;
   outline: none;
-  transition: border-color .15s;
+  transition: border-color .15s, box-shadow .15s;
   -webkit-appearance: none;
-  appearance: none;
 }
-.login-box input:focus { border-color: var(--blue); }
+.login-box input::placeholder { color: var(--dim2); }
+.login-box input:focus {
+  border-color: var(--amber2);
+  box-shadow: 0 0 0 3px rgba(200,136,30,.14);
+}
 
-.login-box button {
-  background: #238636;
+.login-btn {
+  background: linear-gradient(135deg, #a06a14, var(--amber2));
   border: none;
-  border-radius: 8px;
-  color: #fff;
+  border-radius: 10px;
+  color: #120c02;
   cursor: pointer;
+  font-family: var(--font);
   font-size: 14px;
-  font-weight: 600;
-  padding: 12px;
+  font-weight: 700;
+  padding: 13px;
   width: 100%;
-  transition: opacity .15s;
+  transition: opacity .15s, transform .1s;
+  letter-spacing: .02em;
+  box-shadow: 0 4px 20px rgba(200,136,30,.25);
 }
-.login-box button:hover  { opacity: .85; }
-.login-box button:active { opacity: .7; }
-.login-box button:disabled { background: #444; cursor: default; opacity: 1; }
+.login-btn:hover  { opacity: .9; transform: translateY(-1px); }
+.login-btn:active { opacity: .8; transform: translateY(0); }
+.login-btn:disabled { background: var(--card2); color: var(--dim); cursor: default; transform: none; opacity: 1; box-shadow: none; }
 
-.login-err {
-  font-size: 13px;
-  color: var(--red);
-  text-align: center;
-  min-height: 18px;
-}
+.login-err { font-size: 12px; color: var(--red); text-align: center; min-height: 16px; }
 
-/* ═══════════════════════════════════════════════════
+/* ══════════════════════════════════════
    DASHBOARD
-═══════════════════════════════════════════════════ */
+══════════════════════════════════════ */
 #dash { display: none; flex-direction: column; flex: 1; }
 
-/* ── Header ──────────────────────────────────────── */
+/* ── Header ─────────────────────────── */
 header {
   background: var(--surf);
   border-bottom: 1px solid var(--border);
-  padding: 0 16px;
+  padding: 0 20px;
   height: 52px;
   display: flex;
   align-items: center;
@@ -130,146 +170,154 @@ header {
   z-index: 100;
 }
 
-.h-title {
-  font-size: 15px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
+header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0;
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,136,30,.4) 30%, rgba(200,136,30,.4) 70%, transparent);
 }
 
-.h-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+.h-brand { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+
+.h-mark {
+  width: 26px; height: 26px;
+  background: linear-gradient(145deg, #201a0c, #2e2414);
+  border: 1px solid rgba(200,136,30,.3);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
 }
 
-/* ── Buttons ─────────────────────────────────────── */
+.h-name { font-size: 14px; font-weight: 700; letter-spacing: -.01em; color: var(--amber3); }
+.h-tag  { font-size: 12px; color: var(--dim); font-weight: 400; }
+
+.h-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* ── Buttons ─────────────────────────── */
 .btn {
-  background: #21262d;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  color: var(--sub);
   cursor: pointer;
+  font-family: var(--font);
   font-size: 12px;
-  padding: 5px 11px;
+  padding: 6px 12px;
   white-space: nowrap;
-  transition: background .12s;
+  transition: background .12s, border-color .12s, color .12s;
   line-height: 1.4;
 }
-.btn:hover  { background: #30363d; }
-.btn:active { background: #3d444d; }
+.btn:hover  { background: var(--card2); color: var(--text); }
+.btn:active { background: var(--card); }
 
-.btn-green {
-  background: #238636;
-  border-color: #238636;
-  color: #fff;
-  font-weight: 600;
+.btn-amber {
+  background: linear-gradient(135deg, #a06a14, var(--amber2));
+  border: none;
+  color: #120c02;
+  font-weight: 700;
   font-size: 13px;
-  padding: 7px 14px;
+  padding: 6px 16px;
+  box-shadow: 0 2px 12px rgba(200,136,30,.2);
 }
-.btn-green:hover  { background: #2ea043; border-color: #2ea043; }
+.btn-amber:hover { opacity: .88; color: #120c02; background: linear-gradient(135deg, #a06a14, var(--amber2)); }
 
 .btn-red {
-  background: rgba(248,81,73,.12);
-  border-color: rgba(248,81,73,.4);
+  background: var(--red-bg);
+  border-color: rgba(242,92,80,.25);
   color: var(--red);
 }
-.btn-red:hover  { background: rgba(248,81,73,.22); }
+.btn-red:hover { background: rgba(242,92,80,.15); color: var(--red); }
 
-.btn-icon {
-  padding: 4px 8px;
-  font-size: 13px;
-  line-height: 1;
-}
+.btn-icon { padding: 5px 8px; font-size: 12px; line-height: 1; }
 
-/* ── Main ────────────────────────────────────────── */
+/* ── Main ───────────────────────────── */
 main {
-  padding: 16px;
+  padding: 20px 16px;
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-/* ── Summary strip ───────────────────────────────── */
+/* ── Summary cards ──────────────────── */
 .summary {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
-
-@media (min-width: 600px) {
-  .summary { grid-template-columns: repeat(4, 1fr); }
-}
+@media (min-width: 600px) { .summary { grid-template-columns: repeat(4, 1fr); } }
 
 .scard {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 14px 16px;
+  padding: 18px 20px 16px;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
 }
 
-.scard-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
+.scard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
 }
-.scard.s-active  .scard-dot { background: var(--green); }
-.scard.s-inactive .scard-dot { background: var(--gray); }
-.scard.s-expired  .scard-dot { background: var(--red); }
-.scard.s-unbound  .scard-dot { background: var(--yellow); }
+.scard.s-active::before  { background: var(--green);  box-shadow: 0 0 8px var(--green); }
+.scard.s-unbound::before { background: var(--blue);   box-shadow: 0 0 8px var(--blue); }
+.scard.s-expired::before { background: var(--red);    box-shadow: 0 0 8px var(--red); }
+.scard.s-inactive::before{ background: var(--gray); }
+
+.scard.s-active  { border-color: rgba(64,214,126,.18); }
+.scard.s-unbound { border-color: rgba(90,170,245,.18); }
+.scard.s-expired { border-color: rgba(242,92,80,.18); }
 
 .scard-val {
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 32px;
+  font-weight: 700;
   line-height: 1;
+  font-family: var(--mono);
+  letter-spacing: -.04em;
 }
 .scard.s-active  .scard-val { color: var(--green); }
+.scard.s-unbound .scard-val { color: var(--blue); }
+.scard.s-expired .scard-val { color: var(--red); }
 .scard.s-inactive .scard-val { color: var(--gray); }
-.scard.s-expired  .scard-val { color: var(--red); }
-.scard.s-unbound  .scard-val { color: var(--yellow); }
 
 .scard-label {
   font-size: 11px;
   color: var(--dim);
-  margin-top: 2px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 
-/* ── Toolbar ─────────────────────────────────────── */
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.search-wrap {
-  flex: 1;
-  min-width: 140px;
-}
+/* ── Toolbar ─────────────────────────── */
+.toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.search-wrap { flex: 1; min-width: 160px; }
 
 .search-wrap input {
   background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  border: 1px solid var(--border2);
+  border-radius: 9px;
   color: var(--text);
+  font-family: var(--font);
   font-size: 13px;
-  padding: 7px 11px;
+  padding: 8px 14px;
   width: 100%;
   outline: none;
-  transition: border-color .15s;
+  transition: border-color .15s, box-shadow .15s;
 }
-.search-wrap input:focus { border-color: var(--blue); }
-.search-wrap input::placeholder { color: var(--dim); }
+.search-wrap input::placeholder { color: var(--dim2); }
+.search-wrap input:focus {
+  border-color: rgba(200,136,30,.5);
+  box-shadow: 0 0 0 3px rgba(200,136,30,.08);
+}
 
-/* ── Table wrapper ───────────────────────────────── */
+/* ── Table ──────────────────────────── */
 .tbl-wrap {
   background: var(--card);
   border: 1px solid var(--border);
@@ -279,399 +327,346 @@ main {
   -webkit-overflow-scrolling: touch;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 420px;
-}
+table { width: 100%; border-collapse: collapse; min-width: 420px; }
 
 thead th {
   background: var(--surf);
   border-bottom: 1px solid var(--border);
   color: var(--dim);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: .04em;
-  padding: 10px 14px;
+  letter-spacing: .08em;
+  padding: 11px 16px;
   text-align: left;
   white-space: nowrap;
   text-transform: uppercase;
 }
 
-tbody tr {
-  border-bottom: 1px solid var(--border);
-  transition: background .1s;
-}
+tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
 tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: rgba(255,255,255,.03); }
+tbody tr:hover { background: rgba(255,255,255,.02); }
 
-td {
-  padding: 11px 14px;
-  vertical-align: middle;
-  font-size: 13px;
-}
+td { padding: 12px 16px; vertical-align: middle; font-size: 13px; }
 
 .col-extra  { display: none; }
 .col-extra2 { display: none; }
-
 @media (min-width: 640px)  { .col-extra  { display: table-cell; } }
 @media (min-width: 960px)  { .col-extra2 { display: table-cell; } }
 
-/* ── Cell styles ─────────────────────────────────── */
-.user-cell strong {
-  font-weight: 600;
-  display: block;
-}
+/* ── Cell styles ─────────────────────── */
+.user-cell strong { font-weight: 600; display: block; letter-spacing: -.005em; }
+
 .key-preview {
-  font-family: "Consolas", monospace;
+  font-family: var(--mono);
   font-size: 11px;
   color: var(--dim);
+  background: var(--surf);
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
 }
 
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   border-radius: 20px;
-  padding: 3px 8px;
+  padding: 3px 10px 3px 8px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
+  letter-spacing: .02em;
 }
-.badge-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.b-running  { background: rgba(63,185,80,.15);  color: var(--green);  }
-.b-running .badge-dot  { background: var(--green); animation: pulse 1.4s ease-in-out infinite; }
-.b-warning  { background: rgba(210,153,34,.15); color: var(--yellow); }
-.b-warning .badge-dot  { background: var(--yellow); animation: pulse 2s ease-in-out infinite; }
-.b-error    { background: rgba(248,81,73,.15);  color: var(--red);    }
-.b-error .badge-dot    { background: var(--red); }
-.b-offline  { background: rgba(110,118,129,.12); color: var(--gray);  }
-.b-offline .badge-dot  { background: var(--gray); }
-.b-unbound  { background: rgba(88,166,255,.1);  color: var(--blue);   }
-.b-unbound .badge-dot  { background: var(--blue); }
+.badge-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: .25; }
-}
+.b-running { background: var(--green-bg); color: var(--green); border: 1px solid rgba(64,214,126,.2); }
+.b-running .badge-dot { background: var(--green); animation: pulse 1.4s ease-in-out infinite; }
+.b-warning { background: var(--yellow-bg); color: var(--yellow); border: 1px solid rgba(245,188,48,.2); }
+.b-warning .badge-dot { background: var(--yellow); animation: pulse 2s ease-in-out infinite; }
+.b-error   { background: var(--red-bg); color: var(--red); border: 1px solid rgba(242,92,80,.2); }
+.b-error .badge-dot { background: var(--red); }
+.b-offline { background: var(--gray-bg); color: var(--gray); border: 1px solid rgba(122,112,96,.15); }
+.b-offline .badge-dot { background: var(--gray); }
+.b-unbound { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(90,170,245,.2); }
+.b-unbound .badge-dot { background: var(--blue); }
 
-.expire-ok   { color: var(--dim); }
-.expire-soon { color: var(--yellow); font-weight: 600; }
-.expire-past { color: var(--red); }
-.expire-none { color: var(--dim); }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.2;} }
 
-/* Toggle switch */
-.toggle {
-  position: relative;
-  display: inline-block;
-  width: 34px;
-  height: 20px;
-  flex-shrink: 0;
-}
+.expire-ok   { color: var(--dim); font-family: var(--mono); font-size: 12px; }
+.expire-soon { color: var(--yellow); font-weight: 600; font-family: var(--mono); font-size: 12px; }
+.expire-past { color: var(--red); font-family: var(--mono); font-size: 12px; }
+.expire-none { color: var(--dim2); font-size: 12px; }
+
+/* ── Toggle ─────────────────────────── */
+.toggle { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
 .toggle input { opacity: 0; width: 0; height: 0; }
 .toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  inset: 0;
-  background: #444;
-  border-radius: 20px;
-  transition: background .2s;
+  position: absolute; cursor: pointer; inset: 0;
+  background: #1a1610; border: 1px solid var(--border2);
+  border-radius: 20px; transition: background .2s, border-color .2s;
 }
 .toggle-slider::before {
-  content: "";
-  position: absolute;
-  width: 14px; height: 14px;
-  left: 3px; bottom: 3px;
-  background: #fff;
-  border-radius: 50%;
-  transition: transform .2s;
+  content: ""; position: absolute;
+  width: 14px; height: 14px; left: 2px; top: 2px;
+  background: var(--dim); border-radius: 50%;
+  transition: transform .2s, background .2s;
 }
-.toggle input:checked + .toggle-slider { background: #238636; }
-.toggle input:checked + .toggle-slider::before { transform: translateX(14px); }
+.toggle input:checked + .toggle-slider { background: rgba(64,214,126,.15); border-color: rgba(64,214,126,.35); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(16px); background: var(--green); }
 
-.actions { display: flex; gap: 6px; align-items: center; flex-wrap: nowrap; }
+.actions { display: flex; gap: 6px; align-items: center; }
 
-/* Empty */
-.empty-row td {
-  text-align: center;
-  padding: 48px;
-  color: var(--dim);
-  font-size: 13px;
-}
+.empty-row td { text-align: center; padding: 56px; color: var(--dim); }
 
-/* ── Spinner ──────────────────────────────────────── */
+/* ── Spinner ─────────────────────────── */
 .spinner {
-  display: inline-block;
-  width: 12px; height: 12px;
-  border: 2px solid var(--border);
-  border-top-color: var(--blue);
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-  vertical-align: middle;
-  margin-right: 5px;
+  display: inline-block; width: 12px; height: 12px;
+  border: 2px solid var(--border2); border-top-color: var(--amber2);
+  border-radius: 50%; animation: spin .7s linear infinite;
+  vertical-align: middle; margin-right: 5px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ═══════════════════════════════════════════════════
+/* ══════════════════════════════════════
    MODAL
-═══════════════════════════════════════════════════ */
+══════════════════════════════════════ */
 .overlay {
   display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.65);
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 200;
   align-items: flex-end;
   justify-content: center;
   padding: 0;
 }
-.overlay.open {
-  display: flex;
-}
+.overlay.open { display: flex; }
 
-@media (min-width: 540px) {
-  .overlay { align-items: center; padding: 24px; }
-}
+@media (min-width: 540px) { .overlay { align-items: center; padding: 24px; } }
 
 .modal {
   background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px 16px 0 0;
+  border: 1px solid var(--border2);
+  border-radius: 20px 20px 0 0;
   width: 100%;
-  max-width: 460px;
-  padding: 24px 20px 28px;
+  max-width: 480px;
+  padding: 28px 24px 32px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  max-height: 90dvh;
+  gap: 18px;
+  max-height: 92dvh;
   overflow-y: auto;
+  box-shadow: 0 -8px 48px rgba(0,0,0,.6), 0 0 0 1px rgba(200,136,30,.06);
 }
 
 @media (min-width: 540px) {
-  .modal { border-radius: 16px; max-height: 80dvh; }
+  .modal {
+    border-radius: 20px;
+    box-shadow: 0 32px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(200,136,30,.08);
+    max-height: 82dvh;
+  }
 }
 
-.modal h2 {
-  font-size: 16px;
-  font-weight: 700;
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.modal h2 { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+
+.modal-close {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--dim);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  transition: background .12s, color .12s;
+  flex-shrink: 0;
 }
+.modal-close:hover { background: var(--border); color: var(--text); }
+
+.field { display: flex; flex-direction: column; gap: 7px; }
 
 .field label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--dim);
-  text-transform: uppercase;
-  letter-spacing: .04em;
+  font-size: 11px; font-weight: 600; color: var(--dim);
+  text-transform: uppercase; letter-spacing: .06em;
 }
 
 .field input, .field select {
-  background: #21262d;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
+  background: rgba(255,255,255,.04);
+  border: 1.5px solid var(--border2);
+  border-radius: 10px;
   color: var(--text);
+  font-family: var(--font);
   font-size: 14px;
-  padding: 10px 12px;
+  padding: 11px 13px;
   width: 100%;
   outline: none;
-  transition: border-color .15s;
+  transition: border-color .15s, box-shadow .15s;
   -webkit-appearance: none;
-  appearance: none;
 }
-.field input:focus, .field select:focus { border-color: var(--blue); }
-
-.field-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
+.field input:focus, .field select:focus {
+  border-color: var(--amber2);
+  box-shadow: 0 0 0 3px rgba(200,136,30,.12);
 }
+.field input::placeholder { color: var(--dim2); }
 
-.field-hint {
-  font-size: 12px;
-  color: var(--dim);
-}
+.field-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-.modal-footer {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-}
+.field-hint { font-size: 11px; color: var(--dim2); line-height: 1.5; }
 
-.modal-footer .btn-cancel {
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 4px; }
+
+.btn-cancel {
   background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--dim);
-  cursor: pointer;
-  font-size: 13px;
-  padding: 9px 16px;
+  border: 1px solid var(--border2);
+  border-radius: 9px; color: var(--dim);
+  cursor: pointer; font-family: var(--font);
+  font-size: 13px; padding: 10px 18px;
+  transition: background .12s, color .12s;
+}
+.btn-cancel:hover { background: var(--card2); color: var(--text); }
+
+.btn-submit {
+  background: linear-gradient(135deg, #a06a14, var(--amber2));
+  border: none; border-radius: 9px;
+  color: #120c02; cursor: pointer;
+  font-family: var(--font); font-size: 13px; font-weight: 700;
+  padding: 10px 22px; transition: opacity .15s;
+  letter-spacing: .01em;
+  box-shadow: 0 2px 12px rgba(200,136,30,.2);
+}
+.btn-submit:hover    { opacity: .88; }
+.btn-submit:disabled { background: var(--card2); color: var(--dim); cursor: default; opacity: 1; box-shadow: none; }
+
+.btn-danger {
+  background: var(--red-bg);
+  border: 1px solid rgba(242,92,80,.3);
+  border-radius: 9px; color: var(--red);
+  cursor: pointer; font-family: var(--font);
+  font-size: 13px; font-weight: 600; padding: 10px 18px;
   transition: background .12s;
 }
-.modal-footer .btn-cancel:hover { background: var(--surf); color: var(--text); }
+.btn-danger:hover { background: rgba(242,92,80,.18); }
 
-.modal-footer .btn-submit {
-  background: #238636;
-  border: none;
-  border-radius: 8px;
-  color: #fff;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 9px 20px;
-  transition: opacity .15s;
-}
-.modal-footer .btn-submit:hover    { opacity: .85; }
-.modal-footer .btn-submit:disabled { background: #444; cursor: default; opacity: 1; }
-
-.modal-footer .btn-danger {
-  background: rgba(248,81,73,.15);
-  border: 1px solid rgba(248,81,73,.4);
-  border-radius: 8px;
-  color: var(--red);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 9px 16px;
-  transition: background .12s;
-}
-.modal-footer .btn-danger:hover { background: rgba(248,81,73,.25); }
-
-/* New key display after create */
 .key-display {
-  background: #21262d;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px;
-  font-family: "Consolas", monospace;
-  font-size: 13px;
-  word-break: break-all;
-  color: var(--green);
+  background: rgba(64,214,126,.05);
+  border: 1px solid rgba(64,214,126,.25);
+  border-radius: 10px; padding: 14px;
+  font-family: var(--mono); font-size: 13px;
+  word-break: break-all; color: var(--green); line-height: 1.6;
 }
 
-/* ═══════════════════════════════════════════════════
+/* ══════════════════════════════════════
    TOAST
-═══════════════════════════════════════════════════ */
+══════════════════════════════════════ */
 #toast-wrap {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
+  position: fixed; bottom: 24px; left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 500;
-  pointer-events: none;
-  width: calc(100% - 32px);
-  max-width: 380px;
+  display: flex; flex-direction: column; gap: 8px;
+  z-index: 500; pointer-events: none;
+  width: calc(100% - 32px); max-width: 340px;
 }
 
 .toast {
-  background: var(--surf);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 16px;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 12px; padding: 12px 16px;
   font-size: 13px;
-  animation: slideUp .2s ease-out;
+  animation: slideUp .2s cubic-bezier(.4,0,.2,1);
   pointer-events: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
 }
-.toast.t-ok  { border-color: rgba(63,185,80,.5);  color: var(--green);  }
-.toast.t-err { border-color: rgba(248,81,73,.5);  color: var(--red);    }
-.toast.t-info { border-color: rgba(88,166,255,.4); color: var(--blue);  }
+.toast-icon {
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.toast.t-ok  { border-color: rgba(64,214,126,.25); }
+.toast.t-ok .toast-icon { background: var(--green-bg); color: var(--green); }
+.toast.t-err { border-color: rgba(242,92,80,.25); }
+.toast.t-err .toast-icon { background: var(--red-bg); color: var(--red); }
+.toast.t-info { border-color: rgba(90,170,245,.25); }
+.toast.t-info .toast-icon { background: var(--blue-bg); color: var(--blue); }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity:0; transform:translateY(10px) scale(.96); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
 }
 
-/* ── Larger screens ──────────────────────────────── */
-@media (min-width: 720px) {
-  main { padding: 20px; gap: 16px; }
-  td, thead th { padding: 12px 16px; }
-}
-@media (min-width: 1024px) {
-  main { padding: 24px; }
-}
+@media (min-width: 720px)  { main { padding: 24px 20px; gap: 16px; } }
+@media (min-width: 1024px) { main { padding: 28px; } }
 </style>
 </head>
 <body>
 
-<!-- ════════════════════ LOGIN ════════════════════ -->
+<!-- ════════ LOGIN ════════ -->
 <div id="login">
   <div class="login-box">
-    <div class="login-icon">🔑</div>
-    <h1>授權管理</h1>
-    <p>輸入管理員密碼以繼續</p>
+    <div class="login-brand">
+      <div class="login-emblem">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M14 4 L16 12 L24 14 L16 16 L14 24 L12 16 L4 14 L12 12 Z" fill="none" stroke="#f0a830" stroke-width="1.2" stroke-linejoin="round"/>
+          <circle cx="14" cy="14" r="2.5" fill="#f0a830" opacity=".9"/>
+        </svg>
+      </div>
+      <h1>Mabi-Auto</h1>
+      <p class="login-sub">輸入管理員密碼以繼續</p>
+    </div>
     <input id="pw" type="password" placeholder="管理員密碼" autocomplete="current-password">
-    <button id="login-btn">登入</button>
+    <button class="login-btn" id="login-btn">登入</button>
     <div class="login-err" id="login-err"></div>
   </div>
 </div>
 
-<!-- ════════════════════ DASHBOARD ════════════════════ -->
+<!-- ════════ DASHBOARD ════════ -->
 <div id="dash">
   <header>
-    <div class="h-title">🔑 授權管理</div>
+    <div class="h-brand">
+      <div class="h-mark">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1.5 L8 5.5 L12 7 L8 8.5 L7 12.5 L6 8.5 L2 7 L6 5.5 Z" stroke="#f0a830" stroke-width="1" stroke-linejoin="round" fill="rgba(240,168,48,.12)"/>
+        </svg>
+      </div>
+      <span class="h-name">Mabi-Auto</span>
+      <span class="h-tag">授權管理</span>
+    </div>
     <div class="h-right">
-      <button class="btn btn-green" id="new-btn">＋ 新增授權</button>
+      <button class="btn btn-amber" id="new-btn">＋ 新增授權</button>
       <button class="btn" id="logout-btn">登出</button>
     </div>
   </header>
 
   <main>
-    <!-- Summary -->
     <div class="summary">
       <div class="scard s-active">
-        <div class="scard-dot"></div>
-        <div class="scard-body">
-          <div class="scard-val" id="cnt-active">—</div>
-          <div class="scard-label">啟用中</div>
-        </div>
+        <div class="scard-val" id="cnt-active">—</div>
+        <div class="scard-label">啟用中</div>
       </div>
       <div class="scard s-unbound">
-        <div class="scard-dot"></div>
-        <div class="scard-body">
-          <div class="scard-val" id="cnt-unbound">—</div>
-          <div class="scard-label">未綁定裝置</div>
-        </div>
+        <div class="scard-val" id="cnt-unbound">—</div>
+        <div class="scard-label">未綁定</div>
       </div>
       <div class="scard s-expired">
-        <div class="scard-dot"></div>
-        <div class="scard-body">
-          <div class="scard-val" id="cnt-expired">—</div>
-          <div class="scard-label">已到期</div>
-        </div>
+        <div class="scard-val" id="cnt-expired">—</div>
+        <div class="scard-label">已到期</div>
       </div>
       <div class="scard s-inactive">
-        <div class="scard-dot"></div>
-        <div class="scard-body">
-          <div class="scard-val" id="cnt-inactive">—</div>
-          <div class="scard-label">已停用</div>
-        </div>
+        <div class="scard-val" id="cnt-inactive">—</div>
+        <div class="scard-label">已停用</div>
       </div>
     </div>
 
-    <!-- Toolbar -->
     <div class="toolbar">
       <div class="search-wrap">
-        <input id="search" type="text" placeholder="搜尋使用者名稱...">
+        <input id="search" type="text" placeholder="搜尋使用者名稱或 Key…">
       </div>
     </div>
 
-    <!-- Table -->
     <div class="tbl-wrap">
       <table>
         <thead>
@@ -693,14 +688,16 @@ td {
   </main>
 </div>
 
-<!-- ════════════════════ MODAL ════════════════════ -->
+<!-- ════════ MODAL ════════ -->
 <div class="overlay" id="overlay">
-  <div class="modal" id="modal">
-    <h2 id="modal-title">新增授權</h2>
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">新增授權</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
 
-    <!-- 新增成功後顯示 key -->
-    <div id="created-section" style="display:none; flex-direction:column; gap:10px;">
-      <p style="color:var(--dim); font-size:13px;">授權已建立，請複製以下 Key 給使用者：</p>
+    <div id="created-section" style="display:none; flex-direction:column; gap:14px;">
+      <p style="color:var(--dim); font-size:13px; line-height:1.6;">授權已建立，請複製以下 Key 給使用者：</p>
       <div class="key-display" id="created-key"></div>
       <div class="modal-footer">
         <button class="btn-cancel" onclick="copyCreatedKey()">📋 複製 Key</button>
@@ -708,33 +705,29 @@ td {
       </div>
     </div>
 
-    <!-- 表單 -->
     <div id="form-section">
-      <div style="display:flex; flex-direction:column; gap:14px;" id="form-fields">
+      <div style="display:flex; flex-direction:column; gap:16px;">
         <div class="field">
           <label>使用者名稱</label>
           <input id="f-name" type="text" placeholder="輸入使用者名稱">
         </div>
         <div class="field">
           <label>到期日</label>
-          <div class="field-row">
-            <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--text); text-transform:none; letter-spacing:0;">
-              <input type="checkbox" id="f-permanent" style="width:auto; accent-color:var(--blue);">
-              永久授權
-            </label>
-          </div>
-          <input id="f-expires" type="date" style="margin-top:6px;">
-          <span class="field-hint">不填日期視為永久</span>
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:var(--sub); font-weight:400;">
+            <input type="checkbox" id="f-permanent" style="width:auto; accent-color:var(--amber2); cursor:pointer;">
+            永久授權（不設到期日）
+          </label>
+          <input id="f-expires" type="date">
+          <span class="field-hint">不填日期視為永久授權</span>
         </div>
         <div class="field">
-          <label>監控頁密碼 <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--dim);">（選填）</span></label>
+          <label>監控頁密碼 <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--dim2);">（選填）</span></label>
           <input id="f-viewer-pw" type="text" placeholder="留空則無法登入監控頁">
-          <span class="field-hint">多筆授權填相同密碼可共用同一個監控檢視</span>
+          <span class="field-hint">多筆授權可共用相同密碼以共享同一個監控檢視</span>
         </div>
-        <!-- is_active 只在編輯時顯示 -->
         <div class="field" id="f-active-wrap" style="display:none;">
           <label>狀態</label>
-          <div class="field-row" style="gap:10px;">
+          <div class="field-row" style="gap:12px;">
             <label class="toggle">
               <input type="checkbox" id="f-active" checked>
               <span class="toggle-slider"></span>
@@ -743,7 +736,7 @@ td {
           </div>
         </div>
       </div>
-      <div class="modal-footer" style="margin-top:20px;" id="modal-footer">
+      <div class="modal-footer" style="margin-top:6px;">
         <button class="btn-cancel" onclick="closeModal()">取消</button>
         <button class="btn-submit" id="modal-submit-btn" onclick="submitModal()">建立</button>
       </div>
@@ -751,11 +744,14 @@ td {
   </div>
 </div>
 
-<!-- ════════════════════ CONFIRM ════════════════════ -->
+<!-- ════════ CONFIRM ════════ -->
 <div class="overlay" id="confirm-overlay">
-  <div class="modal" style="gap:14px; max-width:380px;">
-    <h2 id="confirm-title">確認操作</h2>
-    <p id="confirm-msg" style="font-size:13px; color:var(--dim); line-height:1.6;"></p>
+  <div class="modal" style="gap:16px; max-width:400px;">
+    <div class="modal-header">
+      <h2 id="confirm-title">確認操作</h2>
+      <button class="modal-close" onclick="closeConfirm()">✕</button>
+    </div>
+    <p id="confirm-msg" style="font-size:13px; color:var(--dim); line-height:1.7;"></p>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeConfirm()">取消</button>
       <button class="btn-danger" id="confirm-ok-btn">確認</button>
@@ -763,20 +759,16 @@ td {
   </div>
 </div>
 
-<!-- ════════════════════ TOAST ════════════════════ -->
 <div id="toast-wrap"></div>
 
 <script>
-// ── 設定 ──────────────────────────────────────────
 const API_BASE    = "https://mabi-auto-api.mabi-auto.workers.dev";
 const OFFLINE_MIN = 12;
-// ─────────────────────────────────────────────────
 
-let adminToken = sessionStorage.getItem("admin_token") || "";
+let adminToken  = sessionStorage.getItem("admin_token") || "";
 let allLicenses = [];
-let editingId   = null;   // 編輯模式時的 license id
+let editingId   = null;
 
-// ── DOM refs ───────────────────────────────────────
 const $login    = document.getElementById("login");
 const $dash     = document.getElementById("dash");
 const $pw       = document.getElementById("pw");
@@ -785,7 +777,6 @@ const $loginErr = document.getElementById("login-err");
 const $tbody    = document.getElementById("tbody");
 const $search   = document.getElementById("search");
 
-// ── Session restore ───────────────────────────────
 if (adminToken) { showDash(); loadData(); }
 
 $pw.addEventListener("keydown", e => e.key === "Enter" && doLogin());
@@ -793,29 +784,21 @@ $loginBtn.addEventListener("click", doLogin);
 
 document.getElementById("logout-btn").addEventListener("click", () => {
   sessionStorage.removeItem("admin_token");
-  adminToken = "";
-  allLicenses = [];
-  $login.style.display = "flex";
-  $dash.style.display  = "none";
-  $pw.value = "";
-  $loginBtn.disabled = false;
-  $loginBtn.textContent = "登入";
+  adminToken = ""; allLicenses = [];
+  $login.style.display = "flex"; $dash.style.display = "none";
+  $pw.value = ""; $loginBtn.disabled = false; $loginBtn.textContent = "登入";
 });
 
 document.getElementById("new-btn").addEventListener("click", openCreateModal);
-
 $search.addEventListener("input", () => renderTable(filtered()));
 
-// ── Login ─────────────────────────────────────────
 async function doLogin() {
   const val = $pw.value.trim();
   if (!val) return;
   $loginBtn.disabled = true;
   $loginBtn.innerHTML = '<span class="spinner"></span>驗證中...';
   $loginErr.textContent = "";
-
   try {
-    // 用密碼換 JWT（密碼只送這一次）
     const res = await fetch(API_BASE + "/admin/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -825,89 +808,52 @@ async function doLogin() {
     const { token } = await res.json();
     adminToken = token;
     sessionStorage.setItem("admin_token", adminToken);
-    await loadData();
-    showDash();
+    await loadData(); showDash();
   } catch {
     adminToken = "";
     $loginErr.textContent = "密碼錯誤或無法連線";
-    $loginBtn.disabled = false;
-    $loginBtn.textContent = "登入";
+    $loginBtn.disabled = false; $loginBtn.textContent = "登入";
   }
 }
 
-function showDash() {
-  $login.style.display = "none";
-  $dash.style.display  = "flex";
-}
+function showDash() { $login.style.display = "none"; $dash.style.display = "flex"; }
 
-// ── API ───────────────────────────────────────────
 async function api(method, path, body) {
-  const opts = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${adminToken}`,
-    },
-  };
+  const opts = { method, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${adminToken}` } };
   if (body !== undefined) opts.body = JSON.stringify(body);
   const res = await fetch(API_BASE + path, opts);
   if (res.status === 401 || res.status === 403) {
-    // 已登入狀態下收到未授權 → 強制登出並跳回登入頁
-    if ($dash.style.display !== "none") {
-      forceLogout("密碼已失效，請重新登入");
-    }
+    if ($dash.style.display !== "none") forceLogout("登入已失效，請重新登入");
     throw new Error("unauthorized");
   }
-  if (!res.ok) {
-    const j = await res.json().catch(() => ({}));
-    throw new Error(j.error || res.status);
-  }
-  return res.json().catch(() => ({}));
+  if (!res.ok) { const j = await res.json().catch(()=>({})); throw new Error(j.error || res.status); }
+  return res.json().catch(()=>({}));
 }
 
 function forceLogout(msg) {
-  sessionStorage.removeItem("admin_token");
-  adminToken = "";
-  allLicenses = [];
-  // 關閉所有 overlay
+  sessionStorage.removeItem("admin_token"); adminToken = ""; allLicenses = [];
   document.querySelectorAll(".overlay").forEach(el => el.classList.remove("open"));
-  // 切回登入頁
-  $dash.style.display  = "none";
-  $login.style.display = "flex";
-  $pw.value = "";
-  $loginBtn.disabled = false;
-  $loginBtn.textContent = "登入";
+  $dash.style.display = "none"; $login.style.display = "flex";
+  $pw.value = ""; $loginBtn.disabled = false; $loginBtn.textContent = "登入";
   if (msg) $loginErr.textContent = msg;
 }
 
-// ── Load ──────────────────────────────────────────
 async function loadData() {
   try {
     const data = await api("GET", "/admin/licenses");
     allLicenses = data.licenses ?? [];
-    renderSummary(allLicenses);
-    renderTable(filtered());
-    return true;
-  } catch(e) {
-    if (e.message === "unauthorized") return false;
-    toast("載入失敗：" + e.message, "err");
-    return false;
-  }
+    renderSummary(allLicenses); renderTable(filtered()); return true;
+  } catch(e) { if (e.message === "unauthorized") return false; toast("載入失敗：" + e.message, "err"); return false; }
 }
 
-// ── Filter ────────────────────────────────────────
 function filtered() {
   const q = $search.value.trim().toLowerCase();
   if (!q) return allLicenses;
-  return allLicenses.filter(l =>
-    (l.user_name || "").toLowerCase().includes(q) ||
-    (l.key || "").toLowerCase().includes(q)
-  );
+  return allLicenses.filter(l => (l.user_name||"").toLowerCase().includes(q) || (l.key||"").toLowerCase().includes(q));
 }
 
-// ── Summary ───────────────────────────────────────
 function renderSummary(rows) {
-  let active = 0, unbound = 0, expired = 0, inactive = 0;
+  let active=0, unbound=0, expired=0, inactive=0;
   rows.forEach(l => {
     if (!l.is_active) { inactive++; return; }
     if (isExpired(l.expires_at)) { expired++; return; }
@@ -920,41 +866,29 @@ function renderSummary(rows) {
   document.getElementById("cnt-inactive").textContent = inactive;
 }
 
-// ── Table ─────────────────────────────────────────
 function renderTable(rows) {
-  if (rows.length === 0) {
-    $tbody.innerHTML = '<tr class="empty-row"><td colspan="7">沒有資料</td></tr>';
-    return;
-  }
-
+  if (rows.length === 0) { $tbody.innerHTML = '<tr class="empty-row"><td colspan="7">沒有資料</td></tr>'; return; }
   $tbody.innerHTML = rows.map(l => {
     const deviceBadge = makeDeviceBadge(l);
     const expireHtml  = makeExpireHtml(l.expires_at);
-    const createdHtml = fmtDate(l.created_at);
-    const keyPreview  = (l.key || "").slice(0, 8) + "…";
+    const keyPreview  = (l.key||"").slice(0,8) + "…";
     const unbindBtn   = l.machine_id
       ? `<button class="btn btn-icon" title="解綁裝置" onclick="confirmUnbind('${esc(l.id)}','${esc(l.user_name||"未命名")}')">🔓</button>`
-      : `<button class="btn btn-icon" disabled style="opacity:.3;" title="尚未綁定">🔓</button>`;
-
+      : `<button class="btn btn-icon" disabled style="opacity:.25;" title="尚未綁定">🔓</button>`;
     return `<tr>
-      <td>
-        <div class="user-cell">
-          <strong>${esc(l.user_name || "未命名")}</strong>
-        </div>
-      </td>
+      <td><div class="user-cell"><strong>${esc(l.user_name||"未命名")}</strong></div></td>
       <td class="col-extra">
-        <div style="display:flex; align-items:center; gap:6px;">
+        <div style="display:flex; align-items:center; gap:7px;">
           <span class="key-preview">${esc(keyPreview)}</span>
           <button class="btn btn-icon" title="複製完整 Key" onclick="copyKey('${esc(l.key)}')">📋</button>
         </div>
       </td>
       <td>${deviceBadge}</td>
       <td class="col-extra2">${expireHtml}</td>
-      <td class="col-extra2" style="color:var(--dim); font-size:12px;">${createdHtml}</td>
+      <td class="col-extra2" style="color:var(--dim2); font-family:var(--mono); font-size:11px;">${fmtDate(l.created_at)}</td>
       <td>
         <label class="toggle">
-          <input type="checkbox" ${l.is_active ? "checked" : ""}
-            onchange="toggleActive('${esc(l.id)}', this.checked)">
+          <input type="checkbox" ${l.is_active?"checked":""} onchange="toggleActive('${esc(l.id)}', this.checked)">
           <span class="toggle-slider"></span>
         </label>
       </td>
@@ -969,258 +903,165 @@ function renderTable(rows) {
   }).join("");
 }
 
-// ── Badge / helpers ───────────────────────────────
 function makeDeviceBadge(l) {
-  if (!l.machine_id) {
-    return `<span class="badge b-unbound"><span class="badge-dot"></span>未綁定</span>`;
-  }
-  if (!l.m_last_seen) {
-    return `<span class="badge b-offline"><span class="badge-dot"></span>離線</span>`;
-  }
+  if (!l.machine_id) return `<span class="badge b-unbound"><span class="badge-dot"></span>未綁定</span>`;
+  if (!l.m_last_seen) return `<span class="badge b-offline"><span class="badge-dot"></span>離線</span>`;
   const mins = (Date.now() - new Date(l.m_last_seen)) / 60000;
-  const s = mins > OFFLINE_MIN ? "offline" : (l.m_status || "offline");
+  const s = mins > OFFLINE_MIN ? "offline" : (l.m_status||"offline");
   const LABELS = { running:"執行中", warning:"警告", error:"異常", offline:"離線" };
   return `<span class="badge b-${s}"><span class="badge-dot"></span>${esc(LABELS[s]??s)}</span>`;
 }
 
 function makeExpireHtml(expires_at) {
   if (!expires_at) return `<span class="expire-none">永久</span>`;
-  const d    = new Date(expires_at);
-  const now  = new Date();
-  const days = Math.ceil((d - now) / 86400000);
-  if (days < 0)  return `<span class="expire-past">已到期 ${fmtDate(expires_at)}</span>`;
-  if (days <= 7) return `<span class="expire-soon">${fmtDate(expires_at)} (${days}天後)</span>`;
+  const d=new Date(expires_at), now=new Date();
+  const days=Math.ceil((d-now)/86400000);
+  if(days<0)  return `<span class="expire-past">已到期 ${fmtDate(expires_at)}</span>`;
+  if(days<=7) return `<span class="expire-soon">${fmtDate(expires_at)} (${days}天)</span>`;
   return `<span class="expire-ok">${fmtDate(expires_at)}</span>`;
 }
 
-function isExpired(expires_at) {
-  return expires_at && new Date(expires_at) < new Date();
-}
+function isExpired(e){ return e && new Date(e)<new Date(); }
+function fmtDate(iso){ if(!iso)return"—"; return iso.slice(0,10); }
 
-function fmtDate(iso) {
-  if (!iso) return "—";
-  return iso.slice(0, 10);
-}
-
-// ── Copy ──────────────────────────────────────────
 function copyKey(key) {
-  navigator.clipboard.writeText(key)
-    .then(() => toast("已複製 Key", "ok"))
-    .catch(() => toast("複製失敗，請手動複製", "err"));
+  navigator.clipboard.writeText(key).then(()=>toast("已複製 Key","ok")).catch(()=>toast("複製失敗","err"));
 }
-
 function copyCreatedKey() {
-  const key = document.getElementById("created-key").textContent;
-  navigator.clipboard.writeText(key)
-    .then(() => toast("已複製 Key", "ok"))
-    .catch(() => {});
+  navigator.clipboard.writeText(document.getElementById("created-key").textContent).then(()=>toast("已複製 Key","ok")).catch(()=>{});
 }
 
-// ── Toggle active ──────────────────────────────────
 async function toggleActive(id, checked) {
   try {
-    await api("PATCH", `/admin/licenses/${id}`, { is_active: checked ? 1 : 0 });
-    const l = allLicenses.find(x => x.id === id);
-    if (l) l.is_active = checked ? 1 : 0;
+    await api("PATCH", `/admin/licenses/${id}`, { is_active: checked?1:0 });
+    const l = allLicenses.find(x=>x.id===id);
+    if(l) l.is_active = checked?1:0;
     renderSummary(allLicenses);
-    toast(checked ? "已啟用" : "已停用", "ok");
-  } catch(e) {
-    toast("操作失敗：" + e.message, "err");
-    await loadData(); // 還原 UI
-  }
+    toast(checked?"已啟用":"已停用","ok");
+  } catch(e) { toast("操作失敗："+e.message,"err"); await loadData(); }
 }
 
-// ── Modal: Create ─────────────────────────────────
 function openCreateModal() {
   editingId = null;
   document.getElementById("modal-title").textContent = "新增授權";
-  document.getElementById("f-name").value      = "";
-  document.getElementById("f-expires").value   = "";
+  document.getElementById("f-name").value = "";
+  document.getElementById("f-expires").value = "";
   document.getElementById("f-viewer-pw").value = "";
   document.getElementById("f-permanent").checked = false;
   document.getElementById("f-active-wrap").style.display = "none";
-  const _sbtn = document.getElementById("modal-submit-btn");
-  _sbtn.textContent = "建立";
-  _sbtn.disabled = false;
-  document.getElementById("form-section").style.display  = "flex";
+  const btn = document.getElementById("modal-submit-btn");
+  btn.textContent = "建立"; btn.disabled = false;
+  document.getElementById("form-section").style.display = "flex";
   document.getElementById("form-section").style.flexDirection = "column";
-  document.getElementById("created-section").style.display   = "none";
-  togglePermanent();
-  openOverlay("overlay");
-  setTimeout(() => document.getElementById("f-name").focus(), 50);
+  document.getElementById("created-section").style.display = "none";
+  togglePermanent(); openOverlay("overlay");
+  setTimeout(()=>document.getElementById("f-name").focus(), 50);
 }
 
-// ── Modal: Edit ───────────────────────────────────
 function openEditModal(id) {
-  const l = allLicenses.find(x => x.id === id);
-  if (!l) return;
+  const l = allLicenses.find(x=>x.id===id); if(!l) return;
   editingId = id;
   document.getElementById("modal-title").textContent = "編輯授權";
-  document.getElementById("f-name").value      = l.user_name || "";
-  document.getElementById("f-expires").value   = l.expires_at ? l.expires_at.slice(0,10) : "";
-  document.getElementById("f-viewer-pw").value = l.viewer_password || "";
+  document.getElementById("f-name").value = l.user_name||"";
+  document.getElementById("f-expires").value = l.expires_at?l.expires_at.slice(0,10):"";
+  document.getElementById("f-viewer-pw").value = l.viewer_password||"";
   document.getElementById("f-permanent").checked = !l.expires_at;
   document.getElementById("f-active-wrap").style.display = "flex";
-  const activeCheck = document.getElementById("f-active");
-  activeCheck.checked = !!l.is_active;
+  document.getElementById("f-active").checked = !!l.is_active;
   updateActiveLabel();
-  const _sbtn2 = document.getElementById("modal-submit-btn");
-  _sbtn2.textContent = "儲存";
-  _sbtn2.disabled = false;
-  document.getElementById("form-section").style.display  = "flex";
+  const btn = document.getElementById("modal-submit-btn");
+  btn.textContent = "儲存"; btn.disabled = false;
+  document.getElementById("form-section").style.display = "flex";
   document.getElementById("form-section").style.flexDirection = "column";
-  document.getElementById("created-section").style.display   = "none";
-  togglePermanent();
-  openOverlay("overlay");
-  setTimeout(() => document.getElementById("f-name").focus(), 50);
+  document.getElementById("created-section").style.display = "none";
+  togglePermanent(); openOverlay("overlay");
+  setTimeout(()=>document.getElementById("f-name").focus(), 50);
 }
 
 function togglePermanent() {
   const perm = document.getElementById("f-permanent").checked;
-  document.getElementById("f-expires").style.opacity = perm ? ".3" : "1";
+  document.getElementById("f-expires").style.opacity = perm?".3":"1";
   document.getElementById("f-expires").disabled = perm;
 }
-
 function updateActiveLabel() {
-  const on = document.getElementById("f-active").checked;
-  document.getElementById("f-active-label").textContent = on ? "啟用中" : "已停用";
+  document.getElementById("f-active-label").textContent = document.getElementById("f-active").checked?"啟用中":"已停用";
 }
 
 document.getElementById("f-permanent").addEventListener("change", togglePermanent);
 document.getElementById("f-active").addEventListener("change", updateActiveLabel);
 
-// ── Modal: Submit ─────────────────────────────────
 async function submitModal() {
   const btn  = document.getElementById("modal-submit-btn");
   const name = document.getElementById("f-name").value.trim();
-  if (!name) { toast("請輸入使用者名稱", "err"); return; }
-
-  const perm        = document.getElementById("f-permanent").checked;
-  const expiresVal  = document.getElementById("f-expires").value;
-  const expires_at  = perm || !expiresVal ? null : expiresVal + "T00:00:00.000Z";
-  const viewerPwVal = document.getElementById("f-viewer-pw").value.trim();
-  const viewer_password = viewerPwVal || null;
-
+  if(!name){ toast("請輸入使用者名稱","err"); return; }
+  const perm       = document.getElementById("f-permanent").checked;
+  const expiresVal = document.getElementById("f-expires").value;
+  const expires_at = perm||!expiresVal ? null : expiresVal+"T00:00:00.000Z";
+  const viewerPw   = document.getElementById("f-viewer-pw").value.trim();
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>處理中...';
-
   try {
     if (editingId) {
-      // Edit
-      const body = {
-        user_name:  name,
-        is_active:  document.getElementById("f-active").checked ? 1 : 0,
-        expires_at,
-        viewer_password,
-      };
-      await api("PATCH", `/admin/licenses/${editingId}`, body);
-      toast("已儲存", "ok");
-      closeModal();
-      await loadData();
+      await api("PATCH",`/admin/licenses/${editingId}`,{
+        user_name:name, is_active:document.getElementById("f-active").checked?1:0,
+        expires_at, viewer_password:viewerPw||null
+      });
+      toast("已儲存","ok"); closeModal(); await loadData();
     } else {
-      // Create
-      const data = await api("POST", "/admin/licenses", { user_name: name, expires_at, viewer_password });
-      // Show created key
+      const data = await api("POST","/admin/licenses",{user_name:name,expires_at,viewer_password:viewerPw||null});
       document.getElementById("created-key").textContent = data.key;
-      document.getElementById("form-section").style.display    = "none";
+      document.getElementById("form-section").style.display  = "none";
       document.getElementById("created-section").style.display = "flex";
       await loadData();
     }
   } catch(e) {
-    toast("操作失敗：" + e.message, "err");
-    btn.disabled = false;
-    btn.innerHTML = editingId ? "儲存" : "建立";
+    toast("操作失敗："+e.message,"err");
+    btn.disabled = false; btn.textContent = editingId?"儲存":"建立";
   }
 }
 
-// ── Modal: close ─────────────────────────────────
-function closeModal() {
-  document.getElementById("overlay").classList.remove("open");
-  editingId = null;
-}
+function closeModal(){ document.getElementById("overlay").classList.remove("open"); editingId=null; }
 
-// ── Confirm: Unbind ───────────────────────────────
-function confirmUnbind(id, name) {
-  showConfirm(
-    "解綁裝置",
-    `確定要解綁「${name}」的裝置綁定嗎？\n解綁後使用者可在新電腦重新授權。`,
-    async () => {
-      try {
-        await api("PATCH", `/admin/licenses/${id}`, { machine_id: null });
-        toast("已解綁裝置", "ok");
-        await loadData();
-      } catch(e) {
-        toast("操作失敗：" + e.message, "err");
-      }
-    }
-  );
-}
-
-// ── Confirm: Delete ───────────────────────────────
-function confirmDelete(id, name) {
-  showConfirm(
-    "刪除授權",
-    `確定要刪除「${name}」的授權嗎？\n此操作無法復原，使用者將立即無法登入。`,
-    async () => {
-      try {
-        await api("DELETE", `/admin/licenses/${id}`);
-        toast("已刪除授權", "ok");
-        await loadData();
-      } catch(e) {
-        toast("操作失敗：" + e.message, "err");
-      }
-    }
-  );
-}
-
-// ── Confirm dialog ────────────────────────────────
-let _confirmCb = null;
-function showConfirm(title, msg, cb) {
-  document.getElementById("confirm-title").textContent = title;
-  document.getElementById("confirm-msg").textContent   = msg;
-  _confirmCb = cb;
-  openOverlay("confirm-overlay");
-}
-function closeConfirm() {
-  document.getElementById("confirm-overlay").classList.remove("open");
-  _confirmCb = null;
-}
-document.getElementById("confirm-ok-btn").addEventListener("click", async () => {
-  if (_confirmCb) { const fn = _confirmCb; _confirmCb = null; await fn(); }
-  closeConfirm();
-});
-
-// Close overlay on backdrop click
-document.querySelectorAll(".overlay").forEach(el => {
-  el.addEventListener("click", e => {
-    if (e.target === el) {
-      el.classList.remove("open");
-      _confirmCb = null;
-    }
+function confirmUnbind(id,name){
+  showConfirm("解綁裝置",`確定要解綁「${name}」的裝置綁定嗎？解綁後使用者可在新電腦重新授權。`,async()=>{
+    try{ await api("PATCH",`/admin/licenses/${id}`,{machine_id:null}); toast("已解綁裝置","ok"); await loadData(); }
+    catch(e){ toast("操作失敗："+e.message,"err"); }
   });
+}
+function confirmDelete(id,name){
+  showConfirm("刪除授權",`確定要刪除「${name}」的授權嗎？此操作無法復原，使用者將立即無法登入。`,async()=>{
+    try{ await api("DELETE",`/admin/licenses/${id}`); toast("已刪除授權","ok"); await loadData(); }
+    catch(e){ toast("操作失敗："+e.message,"err"); }
+  });
+}
+
+let _confirmCb=null;
+function showConfirm(title,msg,cb){
+  document.getElementById("confirm-title").textContent=title;
+  document.getElementById("confirm-msg").textContent=msg;
+  _confirmCb=cb; openOverlay("confirm-overlay");
+}
+function closeConfirm(){ document.getElementById("confirm-overlay").classList.remove("open"); _confirmCb=null; }
+document.getElementById("confirm-ok-btn").addEventListener("click",async()=>{
+  if(_confirmCb){const fn=_confirmCb;_confirmCb=null;await fn();} closeConfirm();
 });
 
-function openOverlay(id) {
-  document.getElementById(id).classList.add("open");
+document.querySelectorAll(".overlay").forEach(el=>{
+  el.addEventListener("click",e=>{if(e.target===el){el.classList.remove("open");_confirmCb=null;}});
+});
+
+function openOverlay(id){ document.getElementById(id).classList.add("open"); }
+
+function toast(msg,type="info"){
+  const el=document.createElement("div");
+  el.className=`toast t-${type}`;
+  const icon=type==="ok"?"✓":type==="err"?"✕":"ℹ";
+  el.innerHTML=`<div class="toast-icon">${icon}</div><span>${esc(msg)}</span>`;
+  document.getElementById("toast-wrap").appendChild(el);
+  setTimeout(()=>el.remove(),3500);
 }
 
-// ── Toast ─────────────────────────────────────────
-function toast(msg, type = "info") {
-  const el = document.createElement("div");
-  el.className = `toast t-${type}`;
-  const icon = type === "ok" ? "✓" : type === "err" ? "✕" : "ℹ";
-  el.innerHTML = `<span>${icon}</span> ${esc(msg)}`;
-  const wrap = document.getElementById("toast-wrap");
-  wrap.appendChild(el);
-  setTimeout(() => el.remove(), 3500);
-}
-
-// ── Helpers ───────────────────────────────────────
-function esc(s) {
-  return String(s ?? "")
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
+function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 </script>
 </body>
 </html>

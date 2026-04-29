@@ -4,118 +4,173 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mabi-Auto 監控</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ── Reset & Variables ─────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:      #0d1117;
-  --surf:    #161b22;
-  --card:    #1c2128;
-  --border:  #30363d;
-  --text:    #e6edf3;
-  --dim:     #8b949e;
-  --green:   #3fb950;
-  --yellow:  #d29922;
-  --red:     #f85149;
-  --gray:    #6e7681;
-  --blue:    #58a6ff;
-  --r:       10px;
+  /* warm dark base — amber-tinted blacks */
+  --bg:       #0b0804;
+  --surf:     #131009;
+  --card:     #1a1610;
+  --card2:    #201c14;
+  --border:   #2e261a;
+  --border2:  #3c3222;
+
+  /* text — cool whites for high contrast against warm bg */
+  --text:     #f4f0e8;
+  --sub:      #c8bfad;
+  --dim:      #8a7f6e;
+  --dim2:     #5a5244;
+
+  /* status */
+  --green:    #40d67e;
+  --green-bg: rgba(64,214,126,.08);
+  --yellow:   #f5bc30;
+  --yellow-bg:rgba(245,188,48,.08);
+  --red:      #f25c50;
+  --red-bg:   rgba(242,92,80,.08);
+  --gray:     #7a7060;
+  --gray-bg:  rgba(122,112,96,.08);
+
+  /* amber accent */
+  --amber:    #c8881e;
+  --amber2:   #f0a830;
+  --amber3:   #ffd080;
+
+  --r: 12px;
+  --font: 'Noto Sans TC', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', 'Consolas', monospace;
 }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: "Segoe UI", "Microsoft JhengHei", system-ui, sans-serif;
+  font-family: var(--font);
   font-size: 14px;
   line-height: 1.5;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ═══════════════════════════════════════════════════
+/* ══════════════════════════════════════
    LOGIN
-═══════════════════════════════════════════════════ */
+══════════════════════════════════════ */
 #login {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,136,30,.14) 0%, transparent 60%),
+    var(--bg);
 }
 
 .login-box {
   width: 100%;
-  max-width: 340px;
+  max-width: 348px;
   background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 36px 28px;
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 40px 28px 36px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  box-shadow:
+    0 0 0 1px rgba(200,136,30,.1),
+    0 0 60px rgba(200,136,30,.08),
+    0 40px 80px rgba(0,0,0,.7);
 }
 
-.login-icon { font-size: 36px; text-align: center; }
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 6px;
+}
 
-.login-box h1 {
-  font-size: 17px;
+.login-emblem {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(145deg, #201a0c, #2e2414);
+  border: 1px solid rgba(200,136,30,.35);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 24px rgba(200,136,30,.18), inset 0 1px 0 rgba(255,200,80,.08);
+}
+
+.login-brand h1 {
+  font-size: 19px;
   font-weight: 700;
-  text-align: center;
+  letter-spacing: -.02em;
+  color: var(--amber3);
+  text-shadow: 0 0 20px rgba(200,136,30,.4);
 }
 
-.login-box p {
-  font-size: 13px;
+.login-sub {
+  font-size: 12px;
   color: var(--dim);
-  text-align: center;
   margin-top: -8px;
 }
 
 .login-box input {
-  background: #21262d;
-  border: 1.5px solid var(--border);
-  border-radius: 8px;
+  background: rgba(255,255,255,.04);
+  border: 1.5px solid var(--border2);
+  border-radius: 10px;
   color: var(--text);
-  font-size: 15px;
-  padding: 11px 13px;
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 12px 14px;
   width: 100%;
   outline: none;
-  transition: border-color .15s;
+  transition: border-color .15s, box-shadow .15s;
   -webkit-appearance: none;
-  appearance: none;
 }
-.login-box input:focus { border-color: var(--blue); }
+.login-box input::placeholder { color: var(--dim2); }
+.login-box input:focus {
+  border-color: var(--amber2);
+  box-shadow: 0 0 0 3px rgba(200,136,30,.14);
+}
 
-.login-box button {
-  background: #238636;
+.login-btn {
+  background: linear-gradient(135deg, #a06a14, var(--amber2));
   border: none;
-  border-radius: 8px;
-  color: #fff;
+  border-radius: 10px;
+  color: #120c02;
   cursor: pointer;
+  font-family: var(--font);
   font-size: 14px;
-  font-weight: 600;
-  padding: 12px;
+  font-weight: 700;
+  padding: 13px;
   width: 100%;
-  transition: opacity .15s;
+  transition: opacity .15s, transform .1s;
+  letter-spacing: .02em;
+  box-shadow: 0 4px 20px rgba(200,136,30,.25);
 }
-.login-box button:hover  { opacity: .85; }
-.login-box button:active { opacity: .7; }
-.login-box button:disabled { background: #444; cursor: default; opacity: 1; }
+.login-btn:hover  { opacity: .9; transform: translateY(-1px); }
+.login-btn:active { opacity: .8; transform: translateY(0); }
+.login-btn:disabled { background: var(--card2); color: var(--dim); cursor: default; transform: none; opacity: 1; box-shadow: none; }
 
 .login-err {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--red);
   text-align: center;
-  min-height: 18px;
+  min-height: 16px;
 }
 
-/* ═══════════════════════════════════════════════════
+/* ══════════════════════════════════════
    DASHBOARD
-═══════════════════════════════════════════════════ */
+══════════════════════════════════════ */
 #dash { display: none; flex-direction: column; flex: 1; }
 
-/* ── Header ──────────────────────────────────────── */
+/* ── Header ─────────────────────────── */
 header {
   background: var(--surf);
   border-bottom: 1px solid var(--border);
@@ -130,13 +185,46 @@ header {
   z-index: 100;
 }
 
-.h-title {
-  font-size: 15px;
-  font-weight: 700;
+/* subtle amber line at very bottom of header */
+header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,136,30,.4) 30%, rgba(200,136,30,.4) 70%, transparent);
+}
+
+.h-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   white-space: nowrap;
+}
+
+.h-mark {
+  width: 26px;
+  height: 26px;
+  background: linear-gradient(145deg, #201a0c, #2e2414);
+  border: 1px solid rgba(200,136,30,.3);
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.h-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  color: var(--amber3);
+}
+
+.h-tag {
+  font-size: 12px;
+  color: var(--dim);
+  font-weight: 400;
 }
 
 .h-right {
@@ -150,89 +238,102 @@ header {
   font-size: 11px;
   color: var(--dim);
   white-space: nowrap;
+  font-family: var(--mono);
 }
 #sync-label.ok  { color: var(--green); }
 #sync-label.err { color: var(--red); }
 
 .btn {
-  background: #21262d;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  color: var(--sub);
   cursor: pointer;
+  font-family: var(--font);
   font-size: 12px;
-  padding: 5px 11px;
+  padding: 6px 12px;
   white-space: nowrap;
-  transition: background .12s;
+  transition: background .12s, border-color .12s, color .12s;
   line-height: 1.4;
 }
-.btn:hover  { background: #30363d; }
-.btn:active { background: #3d444d; }
+.btn:hover  { background: var(--card2); border-color: var(--border2); color: var(--text); }
+.btn:active { background: var(--card); }
 
-/* ── Main ────────────────────────────────────────── */
+/* ── Main ───────────────────────────── */
 main {
-  padding: 16px;
+  padding: 20px 16px;
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-/* ── Summary strip ───────────────────────────────── */
+/* ── Summary strip (flat bar, not cards) ─ */
 .summary {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
-
-@media (min-width: 600px) {
-  .summary { grid-template-columns: repeat(4, 1fr); }
+  display: flex;
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
 }
 
 .scard {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
+  flex: 1;
   padding: 14px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
+  border-right: 1px solid var(--border);
 }
+.scard:last-child { border-right: none; }
 
 .scard-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px; height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
-.scard.running .scard-dot  { background: var(--green); }
-.scard.warning .scard-dot  { background: var(--yellow); }
-.scard.error   .scard-dot  { background: var(--red); }
-.scard.offline .scard-dot  { background: var(--gray); }
+.scard.running .scard-dot { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s ease-in-out infinite; }
+.scard.warning .scard-dot { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); animation: pulse 2s ease-in-out infinite; }
+.scard.error   .scard-dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
+.scard.offline .scard-dot { background: var(--gray); }
+
+.scard-body { display: flex; flex-direction: column; gap: 1px; }
 
 .scard-val {
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
+  font-family: var(--mono);
+  letter-spacing: -.04em;
 }
-.scard.running .scard-val  { color: var(--green); }
-.scard.warning .scard-val  { color: var(--yellow); }
-.scard.error   .scard-val  { color: var(--red); }
-.scard.offline .scard-val  { color: var(--gray); }
+.scard.running .scard-val { color: var(--green); }
+.scard.warning .scard-val { color: var(--yellow); }
+.scard.error   .scard-val { color: var(--red); }
+.scard.offline .scard-val { color: var(--gray); }
 
 .scard-label {
-  font-size: 11px;
-  color: var(--dim);
-  margin-top: 2px;
+  font-size: 10px;
+  color: var(--dim2);
+  font-weight: 500;
+  letter-spacing: .05em;
+  text-transform: uppercase;
 }
 
-/* ── Table wrapper ───────────────────────────────── */
+@media (max-width: 500px) {
+  .summary { flex-wrap: wrap; }
+  .scard { flex: 1 1 50%; }
+  .scard:nth-child(2) { border-right: none; }
+  .scard:nth-child(3), .scard:nth-child(4) { border-top: 1px solid var(--border); }
+  .scard:nth-child(4) { border-right: none; }
+}
+
+/* ── Table wrapper ──────────────────── */
 .tbl-wrap {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  overflow: hidden;   /* clip rounded corners */
-  overflow-x: auto;   /* horizontal scroll on mobile if needed */
+  overflow: hidden;
+  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -246,10 +347,10 @@ thead th {
   background: var(--surf);
   border-bottom: 1px solid var(--border);
   color: var(--dim);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: .04em;
-  padding: 10px 14px;
+  letter-spacing: .08em;
+  padding: 11px 16px;
   text-align: left;
   white-space: nowrap;
   text-transform: uppercase;
@@ -260,106 +361,63 @@ tbody tr {
   transition: background .1s;
 }
 tbody tr:last-child { border-bottom: none; }
-tbody tr:hover { background: rgba(255,255,255,.03); }
+tbody tr:hover { background: rgba(255,255,255,.02); }
 
 td {
-  padding: 12px 14px;
+  padding: 13px 16px;
   vertical-align: middle;
   font-size: 13px;
 }
 
-/* 手機隱藏次要欄位 */
 .col-extra { display: none; }
+@media (min-width: 640px) { .col-extra { display: table-cell; } }
 
-@media (min-width: 640px) {
-  .col-extra { display: table-cell; }
-}
-
-/* ── Status badge ────────────────────────────────── */
+/* ── Status badge ───────────────────── */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   border-radius: 20px;
-  padding: 3px 9px;
+  padding: 3px 10px 3px 8px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
-  line-height: 1;
+  letter-spacing: .02em;
 }
-
 .badge-dot {
-  width: 7px;
-  height: 7px;
+  width: 5px; height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
-  display: block;
 }
 
-.badge-running { background: rgba(63,185,80,.15);  color: var(--green);  }
-.badge-running .badge-dot  { background: var(--green);  animation: pulse 1.4s ease-in-out infinite; }
+.badge-running { background: var(--green-bg); color: var(--green); border: 1px solid rgba(64,214,126,.2); }
+.badge-running .badge-dot { background: var(--green); animation: pulse 1.4s ease-in-out infinite; }
+.badge-warning { background: var(--yellow-bg); color: var(--yellow); border: 1px solid rgba(245,188,48,.2); }
+.badge-warning .badge-dot { background: var(--yellow); animation: pulse 2s ease-in-out infinite; }
+.badge-error   { background: var(--red-bg); color: var(--red); border: 1px solid rgba(242,92,80,.2); }
+.badge-error   .badge-dot { background: var(--red); }
+.badge-offline { background: var(--gray-bg); color: var(--gray); border: 1px solid rgba(122,112,96,.15); }
+.badge-offline .badge-dot { background: var(--gray); }
 
-.badge-warning { background: rgba(210,153,34,.15); color: var(--yellow); }
-.badge-warning .badge-dot  { background: var(--yellow); animation: pulse 2s   ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.2; } }
 
-.badge-error   { background: rgba(248,81,73,.15);  color: var(--red);    }
-.badge-error   .badge-dot  { background: var(--red); }
+/* ── Cell styles ────────────────────── */
+.user-name { font-weight: 600; color: var(--text); }
+.user-id   { font-family: var(--mono); font-size: 10px; color: var(--dim2); margin-top: 3px; }
 
-.badge-offline { background: rgba(110,118,129,.12); color: var(--gray);  }
-.badge-offline .badge-dot  { background: var(--gray); }
+.num { font-family: var(--mono); font-size: 13px; color: var(--sub); font-weight: 500; }
+.time-cell { font-family: var(--mono); font-size: 11px; color: var(--dim); white-space: nowrap; }
+.err-cell  { font-size: 12px; color: var(--red); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ver-cell  { font-family: var(--mono); font-size: 10px; color: var(--dim2); }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: .2; }
-}
-
-/* ── Table cell styles ───────────────────────────── */
-.user-name {
-  font-weight: 600;
-  color: var(--text);
-}
-.user-id {
-  font-family: "Consolas", monospace;
-  font-size: 10px;
-  color: var(--dim);
-  margin-top: 2px;
-}
-
-.num {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.time-cell {
-  font-size: 12px;
-  color: var(--dim);
-  white-space: nowrap;
-}
-
-.err-cell {
-  font-size: 12px;
-  color: var(--red);
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ── Empty / spinner ─────────────────────────────── */
-.empty-row td {
-  text-align: center;
-  padding: 48px;
-  color: var(--dim);
-  font-size: 13px;
-}
+/* ── Empty / spinner ────────────────── */
+.empty-row td { text-align: center; padding: 56px; color: var(--dim); }
 
 .spinner {
   display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid var(--border);
-  border-top-color: var(--blue);
+  width: 12px; height: 12px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--amber2);
   border-radius: 50%;
   animation: spin .7s linear infinite;
   vertical-align: middle;
@@ -367,44 +425,242 @@ td {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Larger screens ──────────────────────────────── */
-@media (min-width: 720px) {
-  main { padding: 20px; gap: 16px; }
-  td, thead th { padding: 12px 16px; }
+/* ── Cards grid ─────────────────────── */
+#cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+@media (min-width: 560px)  { #cards-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 900px)  { #cards-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1200px) { #cards-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.mcard {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color .15s, box-shadow .15s, opacity .15s, transform .15s;
+  position: relative;
+  cursor: grab;
+  user-select: none;
+}
+.mcard:hover { border-color: var(--border2); box-shadow: 0 4px 20px rgba(0,0,0,.3); }
+.mcard.dragging {
+  opacity: .35;
+  cursor: grabbing;
+}
+.mcard.drag-over {
+  border-color: rgba(200,136,30,.6);
+  box-shadow: 0 0 0 2px rgba(200,136,30,.25);
 }
 
-@media (min-width: 1024px) {
-  main { padding: 24px; }
+/* drag handle hint in top-right */
+.mcard-drag-hint {
+  position: absolute;
+  top: 10px; right: 10px;
+  display: flex; flex-direction: column; gap: 2px;
+  opacity: 0;
+  transition: opacity .15s;
+  pointer-events: none;
+  padding: 2px;
 }
+.mcard:hover .mcard-drag-hint { opacity: 1; }
+.mcard-drag-hint span {
+  display: block;
+  width: 14px; height: 1.5px;
+  background: var(--dim2);
+  border-radius: 1px;
+}
+
+/* left status bar */
+.mcard::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+.mcard.running::before { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.mcard.warning::before { background: var(--yellow); box-shadow: 0 0 8px var(--yellow); }
+.mcard.error::before   { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+.mcard.offline::before { background: var(--gray); }
+
+.mcard.running { border-color: rgba(64,214,126,.2); }
+.mcard.warning { border-color: rgba(245,188,48,.2); }
+.mcard.error   { border-color: rgba(242,92,80,.2); }
+
+/* header row */
+.mcard-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 14px 14px 10px 18px;
+  gap: 8px;
+}
+
+.mcard-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.01em;
+  line-height: 1.2;
+}
+.mcard-id {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--dim2);
+  margin-top: 3px;
+}
+
+/* stats row */
+.mcard-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.mstat {
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border-right: 1px solid var(--border);
+}
+.mstat:last-child { border-right: none; }
+
+.mstat-val {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -.02em;
+  line-height: 1;
+}
+.mstat-val.dim { color: var(--dim); font-size: 14px; }
+
+.mstat-label {
+  font-size: 10px;
+  color: var(--dim2);
+  font-weight: 500;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* footer row */
+.mcard-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px 9px 18px;
+  gap: 8px;
+}
+
+.mcard-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mcard-metaitem {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.mcard-metaitem-label {
+  font-size: 10px;
+  color: var(--dim2);
+  letter-spacing: .02em;
+}
+.mcard-metaitem-val {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sub);
+  letter-spacing: -.01em;
+}
+
+.mcard-time {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--dim2);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.mcard-err {
+  font-size: 11px;
+  color: var(--red);
+  padding: 7px 14px 9px 18px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.5;
+  border-top: 1px solid rgba(242,92,80,.15);
+  background: rgba(242,92,80,.04);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 56px 24px;
+  color: var(--dim);
+  font-size: 13px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+}
+
+@media (min-width: 720px)  { main { padding: 24px 20px; } }
+@media (min-width: 1024px) { main { padding: 28px; } }
 </style>
 </head>
 <body>
 
-<!-- ════════════════════ LOGIN ════════════════════ -->
+<!-- ════════ LOGIN ════════ -->
 <div id="login">
   <div class="login-box">
-    <div class="login-icon">⚔️</div>
-    <h1>Mabi-Auto 監控</h1>
-    <p>輸入監控密碼以繼續</p>
+    <div class="login-brand">
+      <div class="login-emblem">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M14 4 L16 12 L24 14 L16 16 L14 24 L12 16 L4 14 L12 12 Z" fill="none" stroke="#f0a830" stroke-width="1.2" stroke-linejoin="round"/>
+          <circle cx="14" cy="14" r="2.5" fill="#f0a830" opacity=".9"/>
+        </svg>
+      </div>
+      <h1>Mabi-Auto</h1>
+      <p class="login-sub">輸入監控密碼以繼續</p>
+    </div>
     <input id="pw" type="password" placeholder="密碼" autocomplete="current-password">
-    <button id="login-btn">登入</button>
+    <button class="login-btn" id="login-btn">登入</button>
     <div class="login-err" id="login-err"></div>
   </div>
 </div>
 
-<!-- ════════════════════ DASHBOARD ════════════════════ -->
+<!-- ════════ DASHBOARD ════════ -->
 <div id="dash">
   <header>
-    <div class="h-title">⚔️ Mabi-Auto 監控</div>
+    <div class="h-brand">
+      <div class="h-mark">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1.5 L8 5.5 L12 7 L8 8.5 L7 12.5 L6 8.5 L2 7 L6 5.5 Z" stroke="#f0a830" stroke-width="1" stroke-linejoin="round" fill="rgba(240,168,48,.12)"/>
+        </svg>
+      </div>
+      <span class="h-name">Mabi-Auto</span>
+      <span class="h-tag">監控</span>
+    </div>
     <div class="h-right">
       <span id="sync-label">—</span>
-      <button class="btn" id="refresh-btn">↻</button>
+      <button class="btn" id="refresh-btn">↻ 重整</button>
       <button class="btn" id="logout-btn">登出</button>
     </div>
   </header>
 
   <main>
-    <!-- Summary -->
     <div class="summary">
       <div class="scard running">
         <div class="scard-dot"></div>
@@ -424,7 +680,7 @@ td {
         <div class="scard-dot"></div>
         <div class="scard-body">
           <div class="scard-val" id="cnt-error">—</div>
-          <div class="scard-label">異常/中斷</div>
+          <div class="scard-label">異常／中斷</div>
         </div>
       </div>
       <div class="scard offline">
@@ -436,51 +692,24 @@ td {
       </div>
     </div>
 
-    <!-- Table -->
-    <div class="tbl-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>使用者</th>
-            <th>狀態</th>
-            <th>刷場</th>
-            <th class="col-extra">場數/時</th>
-            <th class="col-extra">運行時間</th>
-            <th class="col-extra">存金幣</th>
-            <th class="col-extra">修裝備</th>
-            <th class="col-extra">版本</th>
-            <th>最後回報</th>
-            <th class="col-extra">訊息</th>
-          </tr>
-        </thead>
-        <tbody id="tbody">
-          <tr class="empty-row"><td colspan="10">載入中...</td></tr>
-        </tbody>
-      </table>
-    </div>
+    <div id="cards-grid"></div>
   </main>
 </div>
 
 <script>
-// ── 設定 ──────────────────────────────────────────
 const EDGE_URL     = "https://mabi-auto-api.mabi-auto.workers.dev/monitor_status";
 const OFFLINE_MINS = 12;
 const REFRESH_SEC  = 30;
-// ─────────────────────────────────────────────────
 
-let pw = "";
-let timer = null;
+let pw = "", timer = null;
 
-// ── Elements ──────────────────────────────────────
 const $login    = document.getElementById("login");
 const $dash     = document.getElementById("dash");
 const $pw       = document.getElementById("pw");
 const $loginBtn = document.getElementById("login-btn");
 const $loginErr = document.getElementById("login-err");
 const $sync     = document.getElementById("sync-label");
-const $tbody    = document.getElementById("tbody");
 
-// ── Session restore ───────────────────────────────
 const saved = sessionStorage.getItem("mpw");
 if (saved) { pw = saved; showDash(); }
 
@@ -489,13 +718,9 @@ $loginBtn.addEventListener("click", doLogin);
 
 document.getElementById("logout-btn").addEventListener("click", () => {
   sessionStorage.removeItem("mpw");
-  clearInterval(timer); timer = null;
-  pw = "";
-  $login.style.display = "flex";
-  $dash.style.display  = "none";
-  $pw.value = "";
-  $loginBtn.disabled = false;
-  $loginBtn.textContent = "登入";
+  clearInterval(timer); timer = null; pw = "";
+  $login.style.display = "flex"; $dash.style.display = "none";
+  $pw.value = ""; $loginBtn.disabled = false; $loginBtn.textContent = "登入";
 });
 
 document.getElementById("refresh-btn").addEventListener("click", () => {
@@ -503,49 +728,37 @@ document.getElementById("refresh-btn").addEventListener("click", () => {
   fetchData().then(() => { timer = setInterval(fetchData, REFRESH_SEC * 1000); });
 });
 
-// ── Login ──────────────────────────────────────────
 async function doLogin() {
   const val = $pw.value.trim();
   if (!val) return;
   $loginBtn.disabled = true;
   $loginBtn.innerHTML = '<span class="spinner"></span>驗證中...';
   $loginErr.textContent = "";
-
   pw = val;
   const ok = await fetchData();
-  if (ok) {
-    sessionStorage.setItem("mpw", pw);
-    showDash();
-  } else {
+  if (ok) { sessionStorage.setItem("mpw", pw); showDash(); }
+  else {
     pw = "";
     $loginErr.textContent = "密碼錯誤或無法連線";
-    $loginBtn.disabled = false;
-    $loginBtn.textContent = "登入";
+    $loginBtn.disabled = false; $loginBtn.textContent = "登入";
   }
 }
 
 function showDash() {
-  $login.style.display = "none";
-  $dash.style.display  = "flex";
+  $login.style.display = "none"; $dash.style.display = "flex";
   clearInterval(timer);
   timer = setInterval(fetchData, REFRESH_SEC * 1000);
 }
 
-// ── Fetch ──────────────────────────────────────────
 async function fetchData() {
-  $sync.className = "";
-  $sync.innerHTML = '<span class="spinner"></span>';
+  $sync.className = ""; $sync.innerHTML = '<span class="spinner"></span>';
   try {
     const res = await fetch(EDGE_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password: pw }),
     });
-    if (res.status === 401) {
-      $sync.className = "err";
-      $sync.textContent = "密碼錯誤";
-      return false;
-    }
+    if (res.status === 401) { $sync.className = "err"; $sync.textContent = "密碼錯誤"; return false; }
     if (!res.ok) throw new Error(res.status);
     const { rows } = await res.json();
     render(rows ?? []);
@@ -553,107 +766,165 @@ async function fetchData() {
     $sync.textContent = "更新於 " + new Date().toLocaleTimeString("zh-TW");
     return true;
   } catch {
-    $sync.className = "err";
-    $sync.textContent = "連線失敗";
-    return false;
+    $sync.className = "err"; $sync.textContent = "連線失敗"; return false;
   }
 }
 
-// ── Status helper ──────────────────────────────────
 function effStatus(row) {
   const mins = (Date.now() - new Date(row.last_seen)) / 60000;
   if (mins > OFFLINE_MINS) return "offline";
   return row.status || "offline";
 }
 
-const STATUS_LABEL = {
-  running: "執行中",
-  warning: "警告",
-  error:   "異常/中斷",
-  offline: "離線",
-};
+const STATUS_LABEL = { running:"執行中", warning:"警告", error:"異常/中斷", offline:"離線" };
 
 function makeBadge(s) {
-  const label = STATUS_LABEL[s] ?? s;
-  return `<span class="badge badge-${s}"><span class="badge-dot"></span>${esc(label)}</span>`;
+  return `<span class="badge badge-${s}"><span class="badge-dot"></span>${esc(STATUS_LABEL[s]??s)}</span>`;
 }
 
-// ── Render ──────────────────────────────────────────
 function render(rows) {
-  let r = 0, w = 0, e = 0, o = 0;
+  let r=0,w=0,e=0,o=0;
   rows.forEach(row => {
     const s = effStatus(row);
-    if      (s === "running") r++;
-    else if (s === "warning") w++;
-    else if (s === "error")   e++;
-    else                      o++;
+    if(s==="running")r++; else if(s==="warning")w++; else if(s==="error")e++; else o++;
   });
   document.getElementById("cnt-running").textContent = r;
   document.getElementById("cnt-warning").textContent = w;
   document.getElementById("cnt-error").textContent   = e;
   document.getElementById("cnt-offline").textContent  = o;
 
+  const grid = document.getElementById("cards-grid");
+
   if (rows.length === 0) {
-    $tbody.innerHTML = '<tr class="empty-row"><td colspan="10">尚無裝置資料</td></tr>';
+    grid.innerHTML = '<div class="empty-state">尚無裝置資料</div>';
     return;
   }
 
-  $tbody.innerHTML = rows.map(row => {
+  // apply saved order from localStorage, fallback to name sort
+  const savedOrder = getSavedOrder();
+  if (savedOrder.length) {
+    rows = [...rows].sort((a, b) => {
+      const ai = savedOrder.indexOf(a.machine_id);
+      const bi = savedOrder.indexOf(b.machine_id);
+      const av = ai === -1 ? 9999 : ai;
+      const bv = bi === -1 ? 9999 : bi;
+      if (av !== bv) return av - bv;
+      return (a.user_name||'').localeCompare(b.user_name||'', 'zh-TW');
+    });
+  } else {
+    rows = [...rows].sort((a,b) => (a.user_name||'').localeCompare(b.user_name||'', 'zh-TW'));
+  }
+
+  grid.innerHTML = rows.map(row => {
     const s   = effStatus(row);
-    const err = row.error_msg
-      ? `<span class="err-cell" title="${esc(row.error_msg)}">${esc(row.error_msg)}</span>`
-      : `<span style="color:var(--dim)">—</span>`;
-    return `<tr>
-      <td>
-        <div class="user-name">${esc(row.user_name || "未命名")}</div>
-        <div class="user-id">${esc(row.machine_id.slice(0,10))}…</div>
-      </td>
-      <td>${makeBadge(s)}</td>
-      <td><span class="num">${row.runs_count}</span></td>
-      <td class="col-extra"><span class="num">${fmtRph(row.runs_count, row.elapsed_seconds)}</span></td>
-      <td class="col-extra"><span class="num">${fmtElapsed(row.elapsed_seconds)}</span></td>
-      <td class="col-extra"><span class="num">${row.deposits_count}</span></td>
-      <td class="col-extra"><span class="num">${row.repairs_count}</span></td>
-      <td class="col-extra">${fmtVersion(row.app_version, row.python_version)}</td>
-      <td class="time-cell" title="${esc(row.last_seen)}">${relTime(row.last_seen)}</td>
-      <td class="col-extra">${err}</td>
-    </tr>`;
+    const rph = fmtRph(row.runs_count, row.elapsed_seconds);
+    const elt = fmtElapsed(row.elapsed_seconds);
+    const errHtml = row.error_msg
+      ? `<div class="mcard-err" title="${esc(row.error_msg)}">⚠ ${esc(row.error_msg)}</div>`
+      : "";
+    return `<div class="mcard ${s}" draggable="true" data-id="${esc(row.machine_id)}">
+      <div class="mcard-drag-hint"><span></span><span></span><span></span></div>
+      <div class="mcard-head">
+        <div>
+          <div class="mcard-name">${esc(row.user_name||"未命名")}</div>
+          <div class="mcard-id">${esc(row.machine_id.slice(0,10))}…</div>
+        </div>
+        ${makeBadge(s)}
+      </div>
+      <div class="mcard-stats">
+        <div class="mstat">
+          <div class="mstat-val ${row.runs_count?'':'dim'}">${row.runs_count||"—"}</div>
+          <div class="mstat-label">刷場數</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-val ${rph!=='—'?'':'dim'}">${rph}</div>
+          <div class="mstat-label">場 / 時</div>
+        </div>
+        <div class="mstat">
+          <div class="mstat-val ${elt!=='—'?'':'dim'}" style="font-size:14px;">${elt}</div>
+          <div class="mstat-label">運行時間</div>
+        </div>
+      </div>
+      <div class="mcard-foot">
+        <div class="mcard-meta">
+          <div class="mcard-metaitem"><span class="mcard-metaitem-label">存金幣</span><span class="mcard-metaitem-val">${row.deposits_count}</span></div>
+          <div class="mcard-metaitem"><span class="mcard-metaitem-label">修裝備</span><span class="mcard-metaitem-val">${row.repairs_count}</span></div>
+        </div>
+        <div class="mcard-time" title="${esc(row.last_seen)}">${relTime(row.last_seen)}</div>
+      </div>
+      ${errHtml}
+    </div>`;
   }).join("");
+
+  // activate drag-and-drop after rendering
+  initDrag();
 }
 
-// ── Helpers ────────────────────────────────────────
-function fmtVersion(app, py) {
-  const a = app || '—';
-  const p = py  || '—';
-  return `<span style="font-size:0.78em;color:var(--dim)" title="App: ${esc(a)} / Python: ${esc(p)}">${esc(a)} / ${esc(p)}</span>`;
+// ── localStorage order ───────────────
+const LS_KEY = "mabi_card_order";
+function getSavedOrder() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch { return []; }
+}
+function saveOrder(ids) {
+  localStorage.setItem(LS_KEY, JSON.stringify(ids));
+}
+function currentOrder() {
+  return [...document.querySelectorAll("#cards-grid .mcard")].map(el => el.dataset.id);
 }
 
-function esc(s) {
-  return String(s)
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+// ── Drag and drop ────────────────────
+function initDrag() {
+  const grid = document.getElementById("cards-grid");
+  let dragged = null;
+
+  grid.querySelectorAll(".mcard").forEach(card => {
+    card.addEventListener("dragstart", e => {
+      dragged = card;
+      card.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+    });
+
+    card.addEventListener("dragend", () => {
+      card.classList.remove("dragging");
+      grid.querySelectorAll(".mcard").forEach(c => c.classList.remove("drag-over"));
+      saveOrder(currentOrder());
+      dragged = null;
+    });
+
+    card.addEventListener("dragover", e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      if (card === dragged) return;
+      grid.querySelectorAll(".mcard").forEach(c => c.classList.remove("drag-over"));
+      card.classList.add("drag-over");
+    });
+
+    card.addEventListener("dragleave", () => {
+      card.classList.remove("drag-over");
+    });
+
+    card.addEventListener("drop", e => {
+      e.preventDefault();
+      if (!dragged || card === dragged) return;
+      card.classList.remove("drag-over");
+      // determine insert position
+      const cards = [...grid.querySelectorAll(".mcard")];
+      const dragIdx = cards.indexOf(dragged);
+      const dropIdx = cards.indexOf(card);
+      if (dragIdx < dropIdx) {
+        grid.insertBefore(dragged, card.nextSibling);
+      } else {
+        grid.insertBefore(dragged, card);
+      }
+      saveOrder(currentOrder());
+    });
+  });
 }
 
-function relTime(iso) {
-  const s = (Date.now() - new Date(iso)) / 1000;
-  if (s < 60)    return Math.round(s) + " 秒前";
-  if (s < 3600)  return Math.round(s / 60) + " 分鐘前";
-  if (s < 86400) return Math.round(s / 3600) + " 小時前";
-  return Math.round(s / 86400) + " 天前";
-}
-
-function fmtElapsed(sec) {
-  if (!sec || sec <= 0) return "—";
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const s = sec % 60;
-  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
-}
-
-function fmtRph(runs, sec) {
-  if (!sec || sec <= 0 || !runs) return "—";
-  return (runs / (sec / 3600)).toFixed(1);
-}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function relTime(iso){const s=(Date.now()-new Date(iso))/1000;if(s<60)return Math.round(s)+" 秒前";if(s<3600)return Math.round(s/60)+" 分前";if(s<86400)return Math.round(s/3600)+" 時前";return Math.round(s/86400)+" 天前";}
+function fmtElapsed(sec){if(!sec||sec<=0)return"—";const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;return`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;}
+function fmtRph(runs,sec){if(!sec||sec<=0||!runs)return"—";return(runs/(sec/3600)).toFixed(1);}
 </script>
 </body>
 </html>
