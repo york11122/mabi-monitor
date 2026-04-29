@@ -455,6 +455,12 @@ td {
   opacity: .35;
   cursor: grabbing;
 }
+/* long-press activating feedback */
+.mcard.press-active {
+  transform: scale(.98);
+  border-color: rgba(200,136,30,.5) !important;
+  transition: transform .15s, border-color .15s;
+}
 .mcard.drag-over {
   border-color: rgba(200,136,30,.6);
   box-shadow: 0 0 0 2px rgba(200,136,30,.25);
@@ -922,10 +928,12 @@ function initDrag() {
     });
   });
 
-  // ── Touch drag (mobile) ──────────
+  // ── Touch drag (mobile, long-press to activate) ──
   let touchDragged = null;
   let touchClone   = null;
   let touchOffX = 0, touchOffY = 0;
+  let longPressTimer = null;
+  let touchActive = false;
 
   grid.querySelectorAll(".mcard").forEach(card => {
     card.addEventListener("touchstart", e => {
@@ -934,50 +942,69 @@ function initDrag() {
       const rect = card.getBoundingClientRect();
       touchOffX = t.clientX - rect.left;
       touchOffY = t.clientY - rect.top;
-      touchDragged = card;
 
-      // ghost clone
-      touchClone = card.cloneNode(true);
-      touchClone.style.cssText = `
-        position: fixed;
-        top: ${rect.top}px;
-        left: ${rect.left}px;
-        width: ${rect.width}px;
-        pointer-events: none;
-        opacity: .7;
-        z-index: 999;
-        border-radius: var(--r);
-        box-shadow: 0 8px 32px rgba(0,0,0,.5);
-        transition: none;
-      `;
-      document.body.appendChild(touchClone);
-      card.classList.add("dragging");
+      card.classList.add("press-active");
+      longPressTimer = setTimeout(() => {
+        touchActive = true;
+        touchDragged = card;
+        card.classList.remove("press-active");
+        card.classList.add("dragging");
+
+        // ghost clone
+        const r = card.getBoundingClientRect();
+        touchClone = card.cloneNode(true);
+        touchClone.style.cssText = `
+          position: fixed;
+          top: ${r.top}px;
+          left: ${r.left}px;
+          width: ${r.width}px;
+          pointer-events: none;
+          opacity: .7;
+          z-index: 999;
+          border-radius: var(--r);
+          box-shadow: 0 8px 32px rgba(0,0,0,.5);
+          transition: none;
+        `;
+        document.body.appendChild(touchClone);
+
+        // vibrate if supported
+        if (navigator.vibrate) navigator.vibrate(40);
+      }, 400);
     }, { passive: true });
 
     card.addEventListener("touchmove", e => {
-      if (!touchDragged || !touchClone) return;
+      if (!touchActive) {
+        // cancel long press if finger moved
+        if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+        const card2 = e.currentTarget; card2.classList.remove("press-active");
+        return;
+      }
       e.preventDefault();
       const t = e.touches[0];
-      touchClone.style.top  = (t.clientY - touchOffY) + "px";
-      touchClone.style.left = (t.clientX - touchOffX) + "px";
-
+      if (touchClone) {
+        touchClone.style.top  = (t.clientY - touchOffY) + "px";
+        touchClone.style.left = (t.clientX - touchOffX) + "px";
+      }
       // find card under finger
-      touchClone.style.display = "none";
+      if (touchClone) touchClone.style.display = "none";
       const el = document.elementFromPoint(t.clientX, t.clientY);
-      touchClone.style.display = "";
+      if (touchClone) touchClone.style.display = "";
       const target = el && el.closest(".mcard");
       grid.querySelectorAll(".mcard").forEach(c => c.classList.remove("drag-over"));
       if (target && target !== touchDragged) target.classList.add("drag-over");
     }, { passive: false });
 
     card.addEventListener("touchend", e => {
-      if (!touchDragged || !touchClone) return;
+      if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+      card.classList.remove("press-active");
+      if (!touchActive) return;
+      touchActive = false;
+
       const t = e.changedTouches[0];
-      touchClone.remove(); touchClone = null;
-      touchDragged.classList.remove("dragging");
+      if (touchClone) { touchClone.remove(); touchClone = null; }
+      if (touchDragged) touchDragged.classList.remove("dragging");
       grid.querySelectorAll(".mcard").forEach(c => c.classList.remove("drag-over"));
 
-      touchClone = null;
       const el = document.elementFromPoint(t.clientX, t.clientY);
       const target = el && el.closest(".mcard");
       if (target && target !== touchDragged) {
@@ -988,6 +1015,16 @@ function initDrag() {
         else grid.insertBefore(touchDragged, target);
         saveOrder(currentOrder());
       }
+      touchDragged = null;
+    }, { passive: true });
+
+    card.addEventListener("touchcancel", () => {
+      if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+      touchActive = false;
+      if (touchClone) { touchClone.remove(); touchClone = null; }
+      if (touchDragged) touchDragged.classList.remove("dragging");
+      touchDragged && touchDragged.classList.remove("press-active");
+      grid.querySelectorAll(".mcard").forEach(c => c.classList.remove("drag-over"));
       touchDragged = null;
     }, { passive: true });
   });
