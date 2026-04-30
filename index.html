@@ -520,7 +520,6 @@ td {
   font-family: var(--mono);
   font-size: 10px;
   color: var(--dim2);
-  margin-top: 3px;
 }
 
 /* stats row */
@@ -843,9 +842,14 @@ function render(rows) {
     return `<div class="mcard ${s}" draggable="true" data-id="${esc(row.machine_id)}">
       <div class="mcard-drag-hint"><span></span><span></span><span></span></div>
       <div class="mcard-head">
-        <div>
-          <div class="mcard-name">${esc(row.user_name||"未命名")}</div>
-          <div class="mcard-id">${esc(row.machine_id.slice(0,10))}…</div>
+        <div style="min-width:0; flex:1;">
+          <div style="display:flex; align-items:baseline; gap:7px; flex-wrap:wrap;">
+            <div class="mcard-name">${esc(row.user_name||"未命名")}</div>
+            <div class="mcard-id">${esc(row.machine_id)}</div>
+          </div>
+          <div style="display:flex; align-items:center; margin-top:3px;">
+            ${(row.app_version || row.python_version) ? `<span style="font-family:var(--mono);font-size:10px;color:var(--dim2);" title="UI: ${esc(row.app_version||'—')} / Bot: ${esc(row.python_version||'—')}">${esc(row.app_version||'—')} / ${esc(row.python_version||'—')}</span>` : ''}
+          </div>
         </div>
         ${makeBadge(s)}
       </div>
