@@ -328,6 +328,7 @@ main {
   .scard:nth-child(2) { border-right: none; }
   .scard:nth-child(3), .scard:nth-child(4) { border-top: 1px solid var(--border); }
   .scard:nth-child(4) { border-right: none; }
+  .scard:nth-child(5) { flex: 1 1 100%; border-top: 1px solid var(--border); border-right: none; }
 }
 
 /* ── Table wrapper ──────────────────── */
@@ -707,6 +708,12 @@ td {
           <div class="scard-label">離線</div>
         </div>
       </div>
+      <div class="scard">
+        <div class="scard-body">
+          <div class="scard-val" id="cnt-deposits" style="color: var(--amber2);">—</div>
+          <div class="scard-label">存金幣（合計）</div>
+        </div>
+      </div>
     </div>
 
     <div id="cards-grid"></div>
@@ -800,15 +807,17 @@ function makeBadge(s) {
 }
 
 function render(rows) {
-  let r=0,w=0,e=0,o=0;
+  let r=0,w=0,e=0,o=0,d=0;
   rows.forEach(row => {
     const s = effStatus(row);
     if(s==="running")r++; else if(s==="warning")w++; else if(s==="error")e++; else o++;
+    d += (parseInt(row.deposits_count, 10) || 0);
   });
-  document.getElementById("cnt-running").textContent = r;
-  document.getElementById("cnt-warning").textContent = w;
-  document.getElementById("cnt-error").textContent   = e;
+  document.getElementById("cnt-running").textContent  = r;
+  document.getElementById("cnt-warning").textContent  = w;
+  document.getElementById("cnt-error").textContent    = e;
   document.getElementById("cnt-offline").textContent  = o;
+  document.getElementById("cnt-deposits").textContent = d;
 
   const grid = document.getElementById("cards-grid");
 
