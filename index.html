@@ -290,6 +290,16 @@ main {
 }
 .scard:last-child { border-right: none; }
 
+/* 統計組（存金幣、總刷場、機器總數）背景略深，與狀態組區分 */
+.scard.stat-group {
+  background: var(--card);
+}
+
+/* 狀態組與統計組之間的分隔線 */
+.scard.stat-group-first {
+  border-left: 2px solid var(--amber);
+}
+
 .scard-dot {
   width: 8px; height: 8px;
   border-radius: 50%;
@@ -328,7 +338,10 @@ main {
   .scard:nth-child(2) { border-right: none; }
   .scard:nth-child(3), .scard:nth-child(4) { border-top: 1px solid var(--border); }
   .scard:nth-child(4) { border-right: none; }
-  .scard:nth-child(5) { flex: 1 1 100%; border-top: 1px solid var(--border); border-right: none; }
+  .scard:nth-child(5), .scard:nth-child(6), .scard:nth-child(7) { flex: 1 1 33.33%; border-top: 1px solid var(--border); }
+  .scard:nth-child(7) { border-right: none; }
+  .scard.stat-group-first { border-left: none; border-top: 2px solid var(--border2); }
+  .scard.stat-group-first::before { display: none; }
 }
 
 /* ── Table wrapper ──────────────────── */
@@ -428,6 +441,111 @@ td {
   margin-right: 5px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Toolbar (search + filter) ─────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 160px;
+}
+.search-wrap svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--dim2);
+}
+#search-input {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 8px 10px 8px 32px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+#search-input::placeholder { color: var(--dim2); }
+#search-input:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(200,136,30,.12);
+}
+
+.filter-btns {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.fbtn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--dim);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 11px;
+  white-space: nowrap;
+  transition: background .12s, border-color .12s, color .12s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: .02em;
+}
+.fbtn:hover { background: var(--card2); color: var(--sub); }
+.fbtn.active {
+  background: var(--card2);
+  border-color: var(--border2);
+  color: var(--text);
+}
+.fbtn-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.fbtn[data-filter="all"].active   { border-color: var(--amber); color: var(--amber2); }
+.fbtn[data-filter="running"].active { border-color: rgba(64,214,126,.4); color: var(--green); }
+.fbtn[data-filter="warning"].active { border-color: rgba(245,188,48,.4); color: var(--yellow); }
+.fbtn[data-filter="error"].active   { border-color: rgba(242,92,80,.4); color: var(--red); }
+.fbtn[data-filter="offline"].active { border-color: var(--border2); color: var(--gray); }
+
+/* ── Sparkline ──────────────────────── */
+.mcard-spark {
+  padding: 8px 14px 10px 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+}
+.spark-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.spark-label {
+  font-size: 9px;
+  color: var(--dim2);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.spark-svg {
+  display: block;
+  width: 100%;
+  height: 28px;
+  overflow: visible;
+}
 
 /* ── Cards grid ─────────────────────── */
 #cards-grid {
@@ -596,11 +714,18 @@ td {
 
 .mcard-time {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--dim2);
   white-space: nowrap;
   flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid transparent;
+  transition: color .15s, border-color .15s, background .15s;
 }
+.mcard-time.warn  { color: var(--yellow); background: var(--yellow-bg); border-color: rgba(245,188,48,.2); }
+.mcard-time.stale { color: var(--red);    background: var(--red-bg);    border-color: rgba(242,92,80,.2); }
 
 .mcard-err {
   font-size: 11px;
@@ -708,11 +833,40 @@ td {
           <div class="scard-label">離線</div>
         </div>
       </div>
-      <div class="scard">
+      <div class="scard stat-group stat-group-first">
         <div class="scard-body">
           <div class="scard-val" id="cnt-deposits" style="color: var(--amber2);">—</div>
           <div class="scard-label">存金幣（合計）</div>
         </div>
+      </div>
+      <div class="scard stat-group">
+        <div class="scard-body">
+          <div class="scard-val" id="cnt-runs" style="color: var(--sub);">—</div>
+          <div class="scard-label">總刷場數</div>
+        </div>
+      </div>
+      <div class="scard stat-group">
+        <div class="scard-body">
+          <div class="scard-val" id="cnt-total" style="color: var(--sub);">—</div>
+          <div class="scard-label">機器總數</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <input id="search-input" type="search" placeholder="搜尋名稱或 ID…" autocomplete="off">
+      </div>
+      <div class="filter-btns">
+        <button class="fbtn active" data-filter="all">全部</button>
+        <button class="fbtn" data-filter="running"><span class="fbtn-dot" style="background:var(--green);box-shadow:0 0 4px var(--green);"></span>執行中</button>
+        <button class="fbtn" data-filter="warning"><span class="fbtn-dot" style="background:var(--yellow);"></span>警告</button>
+        <button class="fbtn" data-filter="error"><span class="fbtn-dot" style="background:var(--red);"></span>異常</button>
+        <button class="fbtn" data-filter="offline"><span class="fbtn-dot" style="background:var(--gray);"></span>離線</button>
       </div>
     </div>
 
@@ -807,17 +961,38 @@ function makeBadge(s) {
 }
 
 function render(rows) {
-  let r=0,w=0,e=0,o=0,d=0;
+  let r=0,w=0,e=0,o=0,d=0,runs=0;
   rows.forEach(row => {
     const s = effStatus(row);
     if(s==="running")r++; else if(s==="warning")w++; else if(s==="error")e++; else o++;
-    d += (parseInt(row.deposits_count, 10) || 0);
+    d    += (parseInt(row.deposits_count, 10) || 0);
+    runs += (parseInt(row.runs_count,     10) || 0);
   });
   document.getElementById("cnt-running").textContent  = r;
   document.getElementById("cnt-warning").textContent  = w;
   document.getElementById("cnt-error").textContent    = e;
   document.getElementById("cnt-offline").textContent  = o;
   document.getElementById("cnt-deposits").textContent = d;
+  document.getElementById("cnt-runs").textContent     = runs;
+  document.getElementById("cnt-total").textContent    = rows.length;
+
+  // 推送每台機器的快照到 sparkline 歷史
+  rows.forEach(row => {
+    pushSparkPoint(
+      row.machine_id,
+      parseInt(row.deposits_count, 10) || 0,
+      parseInt(row.runs_count,     10) || 0
+    );
+  });
+
+  // 清除已不存在的機器 ID 歷史
+  const activeIds = new Set(rows.map(r => r.machine_id));
+  const h = loadSparkHistory();
+  let changed = false;
+  Object.keys(h).forEach(id => {
+    if (!activeIds.has(id)) { delete h[id]; changed = true; }
+  });
+  if (changed) saveSparkHistory(h);
 
   const grid = document.getElementById("cards-grid");
 
@@ -841,6 +1016,8 @@ function render(rows) {
     rows = [...rows].sort((a,b) => (a.user_name||'').localeCompare(b.user_name||'', 'zh-TW'));
   }
 
+  const sparkHistory = loadSparkHistory();
+
   grid.innerHTML = rows.map(row => {
     const s   = effStatus(row);
     const rph = fmtRph(row.runs_count, row.elapsed_seconds);
@@ -848,13 +1025,21 @@ function render(rows) {
     const errHtml = row.error_msg
       ? `<div class="mcard-err" title="${esc(row.error_msg)}">⚠ ${esc(row.error_msg)}</div>`
       : "";
-    return `<div class="mcard ${s}" draggable="true" data-id="${esc(row.machine_id)}">
+
+    // sparkline
+    const sid  = row.machine_id;
+    const hist = sparkHistory[sid] || { deposits: [], runs: [] };
+    const sparkDeposits = makeSpark(hist.deposits, "#f0a830");
+    const sparkRuns     = makeSpark(hist.runs,     "#40d67e");
+
+    const rt  = relTime(row.last_seen);
+    return `<div class="mcard ${s}" draggable="true" data-id="${esc(sid)}" data-status="${s}" data-name="${esc(row.user_name||'')}" data-mid="${esc(sid)}">
       <div class="mcard-drag-hint"><span></span><span></span><span></span></div>
       <div class="mcard-head">
         <div style="min-width:0; flex:1;">
           <div style="display:flex; align-items:baseline; gap:7px; flex-wrap:wrap;">
             <div class="mcard-name">${esc(row.user_name||"未命名")}</div>
-            <div class="mcard-id">${esc(row.machine_id)}</div>
+            <div class="mcard-id">${esc(sid)}</div>
           </div>
           <div style="display:flex; align-items:center; margin-top:3px;">
             ${(row.app_version || row.python_version) ? `<span style="font-family:var(--mono);font-size:10px;color:var(--dim2);" title="UI: ${esc(row.app_version||'—')} / Bot: ${esc(row.python_version||'—')}">${esc(row.app_version||'—')} / ${esc(row.python_version||'—')}</span>` : ''}
@@ -876,12 +1061,22 @@ function render(rows) {
           <div class="mstat-label">運行時間</div>
         </div>
       </div>
+      <div class="mcard-spark">
+        <div class="spark-item">
+          <div class="spark-label">存金幣趨勢</div>
+          ${sparkDeposits}
+        </div>
+        <div class="spark-item">
+          <div class="spark-label">刷場趨勢</div>
+          ${sparkRuns}
+        </div>
+      </div>
       <div class="mcard-foot">
         <div class="mcard-meta">
           <div class="mcard-metaitem"><span class="mcard-metaitem-label">存金幣</span><span class="mcard-metaitem-val">${row.deposits_count}</span></div>
           <div class="mcard-metaitem"><span class="mcard-metaitem-label">修裝備</span><span class="mcard-metaitem-val">${row.repairs_count}</span></div>
         </div>
-        <div class="mcard-time" title="${esc(row.last_seen)}">${relTime(row.last_seen)}</div>
+        <div class="mcard-time ${rt.cls}" title="${esc(row.last_seen)}">${rt.text}</div>
       </div>
       ${errHtml}
     </div>`;
@@ -889,6 +1084,95 @@ function render(rows) {
 
   // activate drag-and-drop after rendering
   initDrag();
+  applyFilters();
+}
+
+// ── Search + Filter ──────────────────
+let filterStatus = "all";
+let searchQuery  = "";
+
+document.getElementById("search-input").addEventListener("input", e => {
+  searchQuery = e.target.value.trim().toLowerCase();
+  applyFilters();
+});
+
+document.querySelectorAll(".fbtn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    filterStatus = btn.dataset.filter;
+    document.querySelectorAll(".fbtn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    applyFilters();
+  });
+});
+
+function applyFilters() {
+  document.querySelectorAll("#cards-grid .mcard").forEach(card => {
+    const s    = card.dataset.status;
+    const name = (card.dataset.name  || "").toLowerCase();
+    const id   = (card.dataset.mid   || "").toLowerCase();
+    const matchStatus = filterStatus === "all" || s === filterStatus;
+    const matchSearch = !searchQuery || name.includes(searchQuery) || id.includes(searchQuery);
+    card.style.display = (matchStatus && matchSearch) ? "" : "none";
+  });
+}
+
+// ── Sparkline history (localStorage) ─
+const LS_SPARK = "mabi_spark_history";
+const SPARK_MAX    = 500;          // 每台最多 500 筆（防爆用）
+const SPARK_TTL_MS = 3 * 24 * 60 * 60 * 1000; // 保留 3 天
+
+function loadSparkHistory() {
+  try { return JSON.parse(localStorage.getItem(LS_SPARK) || "{}"); } catch { return {}; }
+}
+function saveSparkHistory(h) {
+  localStorage.setItem(LS_SPARK, JSON.stringify(h));
+}
+function pushSparkPoint(id, deposits, runs) {
+  const h = loadSparkHistory();
+  if (!h[id]) h[id] = { deposits: [], runs: [] };
+  const ts  = Date.now();
+  const cut = ts - SPARK_TTL_MS;
+
+  // 去重：只有數值改變時才推新快照
+  const lastD = h[id].deposits.length ? h[id].deposits[h[id].deposits.length - 1].v : null;
+  const lastR = h[id].runs.length     ? h[id].runs[h[id].runs.length - 1].v         : null;
+  if (deposits !== lastD) h[id].deposits.push({ t: ts, v: deposits });
+  if (runs     !== lastR) h[id].runs.push({ t: ts, v: runs });
+
+  // 清除 3 天以前的舊資料
+  h[id].deposits = h[id].deposits.filter(p => p.t >= cut).slice(-SPARK_MAX);
+  h[id].runs     = h[id].runs.filter(p => p.t >= cut).slice(-SPARK_MAX);
+
+  saveSparkHistory(h);
+}
+
+function makeSpark(points, color) {
+  if (!points || points.length < 2) {
+    return `<svg class="spark-svg" viewBox="0 0 100 28" preserveAspectRatio="none">
+      <line x1="0" y1="20" x2="100" y2="20" stroke="${color}" stroke-width="1" stroke-dasharray="3,3" opacity=".25"/>
+    </svg>`;
+  }
+  const vals = points.map(p => p.v);
+  const min  = Math.min(...vals);
+  const max  = Math.max(...vals);
+  const range = max - min || 1;
+  const W = 100, H = 28, pad = 3;
+  const xs = points.map((_, i) => (i / (points.length - 1)) * W);
+  const ys = vals.map(v => H - pad - ((v - min) / range) * (H - pad * 2));
+  const poly = xs.map((x, i) => `${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");
+  // area fill
+  const areaPts = `0,${H} ` + poly + ` ${W},${H}`;
+  return `<svg class="spark-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="sg-${color.replace('#','')}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity=".25"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <polygon points="${areaPts}" fill="url(#sg-${color.replace('#','')})" />
+    <polyline points="${poly}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${xs[xs.length-1].toFixed(1)}" cy="${ys[ys.length-1].toFixed(1)}" r="2.5" fill="${color}"/>
+  </svg>`;
 }
 
 // ── localStorage order ───────────────
@@ -1044,7 +1328,17 @@ function initDrag() {
 }
 
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
-function relTime(iso){const s=(Date.now()-new Date(iso))/1000;if(s<60)return Math.round(s)+" 秒前";if(s<3600)return Math.round(s/60)+" 分前";if(s<86400)return Math.round(s/3600)+" 時前";return Math.round(s/86400)+" 天前";}
+function relTime(iso){
+  const s=(Date.now()-new Date(iso))/1000;
+  let text, cls="";
+  if(s<60)       text=Math.round(s)+" 秒前";
+  else if(s<3600) text=Math.round(s/60)+" 分前";
+  else if(s<86400)text=Math.round(s/3600)+" 時前";
+  else            text=Math.round(s/86400)+" 天前";
+  if(s>600)  cls="stale";       // 超過 10 分鐘：紅色
+  else if(s>180) cls="warn";    // 超過 3 分鐘：黃色
+  return { text, cls };
+}
 function fmtElapsed(sec){if(!sec||sec<=0)return"—";const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;return`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;}
 function fmtRph(runs,sec){if(!sec||sec<=0||!runs)return"—";return(runs/(sec/3600)).toFixed(1);}
 </script>
