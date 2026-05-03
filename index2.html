@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mabi-Auto 監控</title>
+<title>Mabi-Auto 監控 — DEMO（rph 趨勢試做）</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -442,6 +442,43 @@ td {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ── DEMO toggle bar ────────────────── */
+.demo-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(200,136,30,.06);
+  border: 1px dashed rgba(200,136,30,.35);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--dim);
+  flex-wrap: wrap;
+}
+.demo-bar-label {
+  font-weight: 600;
+  color: var(--amber2);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+.demo-bar-sep {
+  width: 1px; height: 14px; background: var(--border2); margin: 0 6px;
+}
+.dbtn {
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  color: var(--dim);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 9px;
+  transition: background .12s, color .12s, border-color .12s;
+}
+.dbtn:hover  { color: var(--text); border-color: var(--amber); }
+.dbtn.active { background: rgba(200,136,30,.14); border-color: var(--amber); color: var(--amber2); }
+
 /* ── Toolbar (search + filter) ─────── */
 .toolbar {
   display: flex;
@@ -547,7 +584,7 @@ td {
   overflow: visible;
 }
 
-/* 存金幣節奏（取代原存金幣 sparkline） */
+/* 存金幣資訊區（取代原存金幣 sparkline） */
 .dep-info {
   display: flex;
   flex-direction: column;
@@ -814,7 +851,7 @@ td {
         </svg>
       </div>
       <span class="h-name">Mabi-Auto</span>
-      <span class="h-tag">監控</span>
+      <span class="h-tag" style="color:var(--amber2);">DEMO · rph 趨勢試做</span>
     </div>
     <div class="h-right">
       <span id="sync-label">—</span>
@@ -873,6 +910,21 @@ td {
       </div>
     </div>
 
+    <div class="demo-bar">
+      <span class="demo-bar-label">DEMO 控制</span>
+      <span class="demo-bar-sep"></span>
+      <span>視窗</span>
+      <button class="dbtn" data-win="15">15 min</button>
+      <button class="dbtn active" data-win="20">20 min</button>
+      <button class="dbtn" data-win="30">30 min</button>
+      <span class="demo-bar-sep"></span>
+      <span>minZero（鎖底為 0）</span>
+      <button class="dbtn" data-mz="on">開</button>
+      <button class="dbtn active" data-mz="off">關</button>
+      <span class="demo-bar-sep"></span>
+      <span style="color:var(--dim2)">＊只影響「場/時 趨勢」</span>
+    </div>
+
     <div class="toolbar">
       <div class="search-wrap">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -895,11 +947,18 @@ td {
 </div>
 
 <script>
+// ════════════════════════════════════════════════════════════════
+// DEMO MODE — 假資料、跳過登入、不打 API
+// 此檔僅用於評估「刷場 sparkline 改成 rph」的視覺效果
+// 確認方向後再把對應變更搬回 index.html
+// ════════════════════════════════════════════════════════════════
+const DEMO = true;
+
 const EDGE_URL     = "https://mabi-auto-api.mabi-auto.workers.dev/monitor_status";
 const OFFLINE_MINS = 12;
 const REFRESH_SEC  = 30;
 
-let pw = "", timer = null;
+let pw = "demo", timer = null;
 
 const $login    = document.getElementById("login");
 const $dash     = document.getElementById("dash");
@@ -908,8 +967,212 @@ const $loginBtn = document.getElementById("login-btn");
 const $loginErr = document.getElementById("login-err");
 const $sync     = document.getElementById("sync-label");
 
-const saved = sessionStorage.getItem("mpw");
-if (saved) { pw = saved; showDash(); }
+// ── DEMO mock data ──────────────────────────────────────
+//   根據預先設計的「速率行為」產生累計刷場/存金幣歷史，
+//   主要用來驗證 toRateSeries() + sparkline 的視覺效果是否好讀。
+//   每台機器代表一種典型情境（健康/下滑/波動/重啟/停擺/離線）。
+const MOCK = (() => {
+  const NOW         = Date.now();
+  const HOURS       = 24;                            // 過去 24h 歷史
+  const startTime   = NOW - HOURS * 3600 * 1000;
+  const SAMPLE_MIN  = 2.5;                           // 平均 2.5 分一筆樣本
+  const sampleMs    = SAMPLE_MIN * 60 * 1000;
+
+  // 由 rate(t) [單位 rph] 產生「累計場數」樣本序列
+  //   sampleActive(t) 可選：模擬「前端關閉、無人取樣」的時段。
+  //     bot 仍持續累計，但這段時間不會推樣本進歷史。
+  function genRuns(rateFn, t0, t1, sampleActive) {
+    const out = [];
+    let cum = 0;
+    out.push({ t: t0, v: 0 });
+    let lastPushed = t0;
+    const stepMs = 60 * 1000;                        // 1 分鐘步進
+    for (let t = t0 + stepMs; t <= t1; t += stepMs) {
+      const r = Math.max(0, rateFn(t));
+      cum += r / 60;                                 // rph → 每分鐘
+      if (sampleActive && !sampleActive(t)) continue;
+      // 樣本之間加入 0.5~1.5 倍隨機抖動，模擬實際 dedupe 行為
+      const interval = sampleMs * (0.5 + Math.random());
+      if (t - lastPushed >= interval) {
+        const intCum = Math.floor(cum);
+        if (intCum !== out[out.length - 1].v) {
+          out.push({ t, v: intCum });
+          lastPushed = t;
+        }
+      }
+    }
+    return out;
+  }
+
+  // 累計存金幣：每 ~2h 事件一次（小幅隨機）
+  //   sampleActive：同上，模擬前端關閉期間沒有樣本被推進歷史
+  function genDeposits(t0, t1, sampleActive) {
+    const out = [];
+    let cum = 0;
+    out.push({ t: t0, v: 0 });
+    let nextT = t0 + (1.5 + Math.random() * 1.0) * 3600 * 1000;
+    while (nextT <= t1) {
+      cum += Math.floor(80 + Math.random() * 160);
+      if (!sampleActive || sampleActive(nextT)) {
+        out.push({ t: nextT, v: cum });
+      }
+      nextT += (1.7 + Math.random() * 0.6) * 3600 * 1000;
+    }
+    return out;
+  }
+
+  // 串接「重啟前」+「重啟後」兩段（重啟時累計歸零）
+  function genRunsWithRestart(rateFn, restartAt, t0, t1) {
+    const before = genRuns(rateFn, t0, restartAt);
+    const after  = genRuns(rateFn, restartAt + 60_000, t1);
+    // after 段累計已從 0 起算，直接接上即可
+    return [...before, ...after];
+  }
+
+  const machines = [
+    {
+      machine_id: 'M-ALPHA-001', user_name: '阿爾法（穩定）',
+      status: 'running',
+      runs_now: 720, deposits_now: 4800, repairs: 12,
+      elapsed: 22 * 3600, last_seen_offset_s: 18,
+      app_version: '0.8.4', python_version: '0.7.1', err: null,
+      rate: () => 30 + (Math.random() - 0.5) * 4,                   // ~30 rph 微抖動
+    },
+    {
+      machine_id: 'M-BETA-002', user_name: '貝塔（效率下滑）',
+      status: 'warning',
+      runs_now: 580, deposits_now: 3800, repairs: 8,
+      elapsed: 20 * 3600, last_seen_offset_s: 42,
+      app_version: '0.8.4', python_version: '0.7.1', err: null,
+      rate: (t) => {
+        const p = (t - startTime) / (HOURS * 3600 * 1000);          // 0→1
+        return Math.max(8, 38 - p * 26 + (Math.random() - 0.5) * 3);
+      },
+    },
+    {
+      machine_id: 'M-GAMMA-003', user_name: '伽瑪（波動明顯）',
+      status: 'running',
+      runs_now: 660, deposits_now: 4200, repairs: 14,
+      elapsed: 21 * 3600, last_seen_offset_s: 28,
+      app_version: '0.8.4', python_version: '0.7.1', err: null,
+      rate: (t) => {
+        const mins = (t - startTime) / 60000;
+        return 28 + 14 * Math.sin(mins * Math.PI * 2 / 90)          // 90 分週期
+                  + (Math.random() - 0.5) * 4;
+      },
+    },
+    {
+      machine_id: 'M-DELTA-004', user_name: '德爾塔（剛重啟）',
+      status: 'running',
+      runs_now: 95, deposits_now: 3200, repairs: 11,
+      elapsed: 1.5 * 3600, last_seen_offset_s: 22,
+      app_version: '0.8.4', python_version: '0.7.1', err: null,
+      rate: () => 33 + (Math.random() - 0.5) * 4,
+      restartAt: NOW - 1.5 * 3600 * 1000,                            // 1.5 小時前重啟
+    },
+    {
+      machine_id: 'M-EPS-005', user_name: '艾普西隆（接近停擺）',
+      status: 'warning',
+      runs_now: 510, deposits_now: 3400, repairs: 7,
+      elapsed: 23 * 3600, last_seen_offset_s: 95,
+      app_version: '0.8.3', python_version: '0.7.0', err: null,
+      rate: (t) => {
+        const mins = (NOW - t) / 60000;                              // 距現在多久(分)
+        if (mins < 60) return Math.max(0, 4 + (Math.random() - 0.5) * 3);
+        return 28 + (Math.random() - 0.5) * 4;
+      },
+    },
+    {
+      machine_id: 'M-ZETA-006', user_name: '澤塔（完全停擺）',
+      status: 'error',
+      runs_now: 430, deposits_now: 2900, repairs: 5,
+      elapsed: 24 * 3600, last_seen_offset_s: 70,
+      app_version: '0.8.4', python_version: '0.7.1',
+      err: '偵測卡關超過 10 分鐘',
+      rate: (t) => {
+        const mins = (NOW - t) / 60000;
+        if (mins < 75) return 0;
+        return 25 + (Math.random() - 0.5) * 4;
+      },
+    },
+    {
+      machine_id: 'M-ETA-007', user_name: '伊塔（離線）',
+      status: 'running',
+      runs_now: 380, deposits_now: 2700, repairs: 6,
+      elapsed: 18 * 3600, last_seen_offset_s: 22 * 60,                // 22 分鐘前
+      app_version: '0.8.3', python_version: '0.7.0', err: null,
+      rate: () => 26 + (Math.random() - 0.5) * 5,
+    },
+    {
+      machine_id: 'M-THETA-008', user_name: '希塔（高速）',
+      status: 'running',
+      runs_now: 980, deposits_now: 5400, repairs: 18,
+      elapsed: 22 * 3600, last_seen_offset_s: 14,
+      app_version: '0.8.4', python_version: '0.7.1', err: null,
+      rate: () => 44 + (Math.random() - 0.5) * 6,
+    },
+    {
+      machine_id: 'M-LAMBDA-009', user_name: '蘭姆達（資料中斷）',
+      status: 'running',
+      runs_now: 720, deposits_now: 4500, repairs: 13,
+      elapsed: 22 * 3600, last_seen_offset_s: 30,
+      app_version: '0.8.4', python_version: '0.7.1', err: null,
+      rate: () => 30 + (Math.random() - 0.5) * 5,                    // bot 一直在跑
+      // 但「前端」在 6h 前～1h 前這段是關閉狀態，沒推樣本到歷史
+      sampleActive: (t) => {
+        const gapStart = NOW - 6 * 3600 * 1000;
+        const gapEnd   = NOW - 1 * 3600 * 1000;
+        return t < gapStart || t > gapEnd;
+      },
+    },
+  ];
+
+  // 預先生成歷史
+  const history = {};
+  for (const m of machines) {
+    const runsRaw = m.restartAt
+      ? genRunsWithRestart(m.rate, m.restartAt, startTime, NOW)
+      : genRuns(m.rate, startTime, NOW, m.sampleActive);
+    const depRaw = genDeposits(startTime, NOW, m.sampleActive);
+
+    // 校準累計值的尾端對齊到 runs_now / deposits_now
+    const lastRuns = runsRaw[runsRaw.length - 1].v || 1;
+    const runsScale = m.runs_now / lastRuns;
+    const runsHist = runsRaw.map(p => ({ t: p.t, v: Math.round(p.v * runsScale) }));
+
+    const lastDep = depRaw[depRaw.length - 1].v || 1;
+    const depScale = m.deposits_now / lastDep;
+    const depHist = depRaw.map(p => ({ t: p.t, v: Math.round(p.v * depScale) }));
+
+    history[m.machine_id] = { runs: runsHist, deposits: depHist };
+  }
+
+  function rows() {
+    const _now = Date.now();
+    return machines.map(m => ({
+      machine_id:      m.machine_id,
+      user_name:       m.user_name,
+      status:          m.status,
+      runs_count:      m.runs_now,
+      deposits_count:  m.deposits_now,
+      repairs_count:   m.repairs,
+      elapsed_seconds: m.elapsed,
+      last_seen:       new Date(_now - m.last_seen_offset_s * 1000).toISOString(),
+      app_version:     m.app_version,
+      python_version:  m.python_version,
+      error_msg:       m.err,
+    }));
+  }
+
+  return { rows, history: () => history };
+})();
+
+// DEMO: 直接顯示 dashboard，跳過登入；立即抓一次假資料
+if (DEMO) { showDash(); fetchData(); }
+else {
+  const saved = sessionStorage.getItem("mpw");
+  if (saved) { pw = saved; showDash(); }
+}
 
 $pw.addEventListener("keydown", e => e.key === "Enter" && doLogin());
 $loginBtn.addEventListener("click", doLogin);
@@ -950,6 +1213,14 @@ function showDash() {
 
 async function fetchData() {
   $sync.className = ""; $sync.innerHTML = '<span class="spinner"></span>';
+  if (DEMO) {
+    // 不打網路，直接拿假資料
+    await new Promise(r => setTimeout(r, 120));
+    render(MOCK.rows());
+    $sync.className = "ok";
+    $sync.textContent = "DEMO · " + new Date().toLocaleTimeString("zh-TW");
+    return true;
+  }
   try {
     const res = await fetch(EDGE_URL, {
       method: "POST",
@@ -963,11 +1234,15 @@ async function fetchData() {
     $sync.className = "ok";
     $sync.textContent = "更新於 " + new Date().toLocaleTimeString("zh-TW");
     return true;
-  } catch(err) {
-  console.log(err)
+  } catch {
     $sync.className = "err"; $sync.textContent = "連線失敗"; return false;
   }
 }
+
+// DEMO: 控制列當前狀態 + 最近一次 rows 快取，方便切換時重繪
+let _demoWindowMin = 20;
+let _demoMinZero   = false;
+let _lastRows      = null;
 
 function effStatus(row) {
   const mins = (Date.now() - new Date(row.last_seen)) / 60000;
@@ -982,8 +1257,39 @@ function makeBadge(s) {
 }
 
 function render(rows) {
+  _lastRows = rows;  // demo: 切換控制列後可重繪
+  let r=0,w=0,e=0,o=0,d=0,runs=0;
+  rows.forEach(row => {
+    const s = effStatus(row);
+    if(s==="running")r++; else if(s==="warning")w++; else if(s==="error")e++; else o++;
+    d    += (parseInt(row.deposits_count, 10) || 0);
+    runs += (parseInt(row.runs_count,     10) || 0);
+  });
+  document.getElementById("cnt-running").textContent  = r;
+  document.getElementById("cnt-warning").textContent  = w;
+  document.getElementById("cnt-error").textContent    = e;
+  document.getElementById("cnt-offline").textContent  = o;
+  document.getElementById("cnt-deposits").textContent = d;
+  document.getElementById("cnt-runs").textContent     = runs;
+  document.getElementById("cnt-total").textContent    = rows.length;
 
-  // 歷史資料由 server 回傳（row.history），不再使用 localStorage
+  // 推送每台機器的快照到 sparkline 歷史
+  rows.forEach(row => {
+    pushSparkPoint(
+      row.machine_id,
+      parseInt(row.deposits_count, 10) || 0,
+      parseInt(row.runs_count,     10) || 0
+    );
+  });
+
+  // 清除已不存在的機器 ID 歷史
+  const activeIds = new Set(rows.map(r => r.machine_id));
+  const h = loadSparkHistory();
+  let changed = false;
+  Object.keys(h).forEach(id => {
+    if (!activeIds.has(id)) { delete h[id]; changed = true; }
+  });
+  if (changed) saveSparkHistory(h);
 
   const grid = document.getElementById("cards-grid");
 
@@ -1007,6 +1313,8 @@ function render(rows) {
     rows = [...rows].sort((a,b) => (a.user_name||'').localeCompare(b.user_name||'', 'zh-TW'));
   }
 
+  const sparkHistory = loadSparkHistory();
+
   grid.innerHTML = rows.map(row => {
     const s   = effStatus(row);
     const rph = fmtRph(row.runs_count, row.elapsed_seconds);
@@ -1015,22 +1323,20 @@ function render(rows) {
       ? `<div class="mcard-err" title="${esc(row.error_msg)}">⚠ ${esc(row.error_msg)}</div>`
       : "";
 
-    // sparkline（歷史資料由 server 回傳）
+    // sparkline
     const sid  = row.machine_id;
-    const hist = row.history || { deposits: [], runs: [] };
-    // 刷場：累計 → 20 分鐘視窗 rph 速率序列
-    const runsRate = toRateSeries(hist.runs);
-    const sparkRuns = makeSpark(runsRate, "#40d67e");
-    // 取最新一點當作「當前 rph」、整段最高當作「峰值」
-    const curRph  = runsRate.length ? runsRate[runsRate.length - 1].v.toFixed(1) : null;
-    const recentCutoff = Date.now() - 20 * 60 * 1000;
-    const recentRate = runsRate.filter(p => p.t >= recentCutoff);
-    const peakRph = recentRate.length ? Math.max(...recentRate.map(p => p.v)).toFixed(1) : null;
+    const hist = sparkHistory[sid] || { deposits: [], runs: [] };
+    // 刷場：累計 → 視窗 rph 速率序列；視窗大小與 minZero 由 demo 控制列決定
+    const runsRate = toRateSeries(hist.runs, _demoWindowMin * 60 * 1000);
+    const sparkRuns = makeSpark(runsRate, "#40d67e", { minZero: _demoMinZero });
+    // 取最新一點當作「當前 rph」顯示在標題列右側
+    const curRph = runsRate.length ? runsRate[runsRate.length - 1].v.toFixed(1) : null;
+    const peakRph = runsRate.length ? Math.max(...runsRate.map(p => p.v)).toFixed(1) : null;
 
     // 存金幣：用文字呈現「上次距今多久 + 平均間隔」
     //   - 跳過 t0 那筆 v=0 的 placeholder
     //   - 平均間隔取最近最多 5 個 interval（少於 2 筆則不顯示）
-    //   - 距今 > 2.5h 標紅（正常 ~2h 一次）
+    //   - 距今 > 3h 標紅（正常 ~2h 一次）
     let depPrimary = '—', depSecondary = '', depStale = false;
     const realDeps = (hist.deposits || []).filter(p => p.v > 0);
     if (realDeps.length >= 1) {
@@ -1049,7 +1355,7 @@ function render(rows) {
     }
 
     const rt  = relTime(row.last_seen);
-    return `<div class="mcard ${s}" draggable="true" data-id="${esc(sid)}" data-status="${s}" data-name="${esc(row.user_name||'')}" data-mid="${esc(sid)}" data-deposits="${parseInt(row.deposits_count,10)||0}" data-runs="${parseInt(row.runs_count,10)||0}">
+    return `<div class="mcard ${s}" draggable="true" data-id="${esc(sid)}" data-status="${s}" data-name="${esc(row.user_name||'')}" data-mid="${esc(sid)}">
       <div class="mcard-drag-hint"><span></span><span></span><span></span></div>
       <div class="mcard-head">
         <div style="min-width:0; flex:1;">
@@ -1112,7 +1418,7 @@ function render(rows) {
 }
 
 // ── Search + Filter ──────────────────
-let filterStatus = new Set(); // empty = show all
+let filterStatus = "all";
 let searchQuery  = "";
 
 document.getElementById("search-input").addEventListener("input", e => {
@@ -1122,56 +1428,81 @@ document.getElementById("search-input").addEventListener("input", e => {
 
 document.querySelectorAll(".fbtn").forEach(btn => {
   btn.addEventListener("click", () => {
-    const f = btn.dataset.filter;
-    if (f === "all") {
-      filterStatus.clear();
-    } else {
-      if (filterStatus.has(f)) filterStatus.delete(f);
-      else filterStatus.add(f);
-    }
-    // sync active states
-    document.querySelectorAll(".fbtn").forEach(b => {
-      const bf = b.dataset.filter;
-      b.classList.toggle("active", bf === "all" ? filterStatus.size === 0 : filterStatus.has(bf));
-    });
+    filterStatus = btn.dataset.filter;
+    document.querySelectorAll(".fbtn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
     applyFilters();
   });
 });
 
+// DEMO: 控制列切換 → 重繪
+document.querySelectorAll(".dbtn[data-win]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    _demoWindowMin = parseInt(btn.dataset.win, 10);
+    document.querySelectorAll(".dbtn[data-win]").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    if (_lastRows) render(_lastRows);
+  });
+});
+document.querySelectorAll(".dbtn[data-mz]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    _demoMinZero = btn.dataset.mz === "on";
+    document.querySelectorAll(".dbtn[data-mz]").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    if (_lastRows) render(_lastRows);
+  });
+});
+
 function applyFilters() {
-  let r=0,w=0,e=0,o=0,d=0,runs=0,total=0;
   document.querySelectorAll("#cards-grid .mcard").forEach(card => {
     const s    = card.dataset.status;
-    const name = (card.dataset.name || "").toLowerCase();
-    const id   = (card.dataset.mid  || "").toLowerCase();
-    const matchStatus = filterStatus.size === 0 || filterStatus.has(s);
+    const name = (card.dataset.name  || "").toLowerCase();
+    const id   = (card.dataset.mid   || "").toLowerCase();
+    const matchStatus = filterStatus === "all" || s === filterStatus;
     const matchSearch = !searchQuery || name.includes(searchQuery) || id.includes(searchQuery);
-    const visible = matchStatus && matchSearch;
-    card.style.display = visible ? "" : "none";
-    if (visible) {
-      total++;
-      if(s==="running")r++; else if(s==="warning")w++; else if(s==="error")e++; else o++;
-      d    += parseInt(card.dataset.deposits || 0, 10);
-      runs += parseInt(card.dataset.runs     || 0, 10);
-    }
+    card.style.display = (matchStatus && matchSearch) ? "" : "none";
   });
-  document.getElementById("cnt-running").textContent  = r;
-  document.getElementById("cnt-warning").textContent  = w;
-  document.getElementById("cnt-error").textContent    = e;
-  document.getElementById("cnt-offline").textContent  = o;
-  document.getElementById("cnt-deposits").textContent = d;
-  document.getElementById("cnt-runs").textContent     = runs;
-  document.getElementById("cnt-total").textContent    = total;
 }
 
-// Sparkline 歷史改由 server 端 machine_history 提供（隨 /monitor_status 回傳）
-// 不再需要 localStorage 儲存
+// ── Sparkline history (localStorage) ─
+const LS_SPARK = "mabi_spark_history";
+const SPARK_MAX    = 500;          // 每台最多 500 筆（防爆用）
+const SPARK_TTL_MS = 3 * 24 * 60 * 60 * 1000; // 保留 3 天
+
+// DEMO: 用 MOCK.history() 取代 localStorage，避免污染本機快取
+function loadSparkHistory() {
+  if (DEMO) return MOCK.history();
+  try { return JSON.parse(localStorage.getItem(LS_SPARK) || "{}"); } catch { return {}; }
+}
+function saveSparkHistory(h) {
+  if (DEMO) return;  // demo 模式不寫
+  localStorage.setItem(LS_SPARK, JSON.stringify(h));
+}
+function pushSparkPoint(id, deposits, runs) {
+  if (DEMO) return;  // demo 模式不推（歷史已預先生成）
+  const h = loadSparkHistory();
+  if (!h[id]) h[id] = { deposits: [], runs: [] };
+  const ts  = Date.now();
+  const cut = ts - SPARK_TTL_MS;
+
+  // 去重：只有數值改變時才推新快照
+  const lastD = h[id].deposits.length ? h[id].deposits[h[id].deposits.length - 1].v : null;
+  const lastR = h[id].runs.length     ? h[id].runs[h[id].runs.length - 1].v         : null;
+  if (deposits !== lastD) h[id].deposits.push({ t: ts, v: deposits });
+  if (runs     !== lastR) h[id].runs.push({ t: ts, v: runs });
+
+  // 清除 3 天以前的舊資料
+  h[id].deposits = h[id].deposits.filter(p => p.t >= cut).slice(-SPARK_MAX);
+  h[id].runs     = h[id].runs.filter(p => p.t >= cut).slice(-SPARK_MAX);
+
+  saveSparkHistory(h);
+}
 
 // 把累計序列轉成「視窗速率」序列
 //   每點的速率 = 視窗內 (Δ累計值) / (Δ時間, 小時)
 //   遇到累計值下降（機器重啟）會從重啟點起算
-//   windowMs 預設 20 分鐘：足以平滑單筆 1~2 場的小跳動，又能反映效率變化
-function toRateSeries(points, windowMs = 20 * 60 * 1000) {
+//   windowMs 預設 30 分鐘：足以平滑單筆 1~2 場的小跳動，又能反映效率變化
+function toRateSeries(points, windowMs = 30 * 60 * 1000) {
   if (!points || points.length < 2) return [];
   const out = [];
   for (let i = 1; i < points.length; i++) {
@@ -1184,7 +1515,7 @@ function toRateSeries(points, windowMs = 20 * 60 * 1000) {
       if (prev.v > points[j].v) break;          // 邊界 j 偵測到重啟
       j--;
     }
-    if (j === i) continue;                       // 沒可用前一點（重啟剛發生 / 跨越資料中斷）
+    if (j === i) continue;                       // 沒可用前一點（重啟剛發生）
     const dt = (tI - points[j].t) / 3600000;     // 小時
     if (dt <= 0) continue;
     const dv = vI - points[j].v;
@@ -1195,8 +1526,8 @@ function toRateSeries(points, windowMs = 20 * 60 * 1000) {
 
 // 渲染 sparkline。
 //   - x 軸用「時間」而非陣列索引：兩點之間時間越久，水平距離越長 → 資料中斷會視覺呈現
-//   - 相鄰兩點時間差超過 gapMs（預設 1h）視為「斷線」：折線斷開，中間以虛線連接
-//   - opts.minZero=true：把 y 軸下限鎖在 0
+//   - 相鄰兩點時間差超過 gapMs 視為「斷線」：折線斷開，中間以虛線連接
+//   - opts.minZero=true：把 y 軸下限鎖在 0（適合 rph 圖，「停擺=貼底、滿速=貼頂」）
 function makeSpark(points, color, opts = {}) {
   if (!points || points.length < 2) {
     return `<svg class="spark-svg" viewBox="0 0 100 28" preserveAspectRatio="none">
@@ -1246,14 +1577,16 @@ function makeSpark(points, color, opts = {}) {
     body += `<polyline points="${polyStr}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>`;
   });
 
-  // 段與段之間的斷線：虛線連接，標示「這段沒資料」
+  // 段與段之間的斷線：虛線連接
   for (let i = 1; i < segments.length; i++) {
     const a = segments[i - 1][segments[i - 1].length - 1];
     const b = segments[i][0];
     body += `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${color}" stroke-width="1" stroke-dasharray="2,2" opacity=".35"/>`;
   }
 
+  // 末端強調點
   const last = coords[coords.length - 1];
+
   return `<svg class="spark-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
     <defs>
       <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
