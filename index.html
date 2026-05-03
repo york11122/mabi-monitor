@@ -963,7 +963,8 @@ async function fetchData() {
     $sync.className = "ok";
     $sync.textContent = "更新於 " + new Date().toLocaleTimeString("zh-TW");
     return true;
-  } catch {
+  } catch(err) {
+  console.log(err)
     $sync.className = "err"; $sync.textContent = "連線失敗"; return false;
   }
 }
@@ -1029,6 +1030,7 @@ function render(rows) {
       : "";
 
     // sparkline（歷史資料由 server 回傳）
+    const sid  = row.machine_id;
     const hist = row.history || { deposits: [], runs: [] };
     // 刷場：累計 → 20 分鐘視窗 rph 速率序列
     const runsRate = toRateSeries(hist.runs);
