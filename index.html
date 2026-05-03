@@ -547,6 +547,26 @@ td {
   overflow: visible;
 }
 
+/* 存金幣節奏（取代原存金幣 sparkline） */
+.dep-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 1px;
+  font-family: var(--mono);
+  line-height: 1.3;
+}
+.dep-info-primary {
+  font-size: 12px;
+  color: var(--sub);
+  letter-spacing: -.01em;
+}
+.dep-info-primary.stale { color: var(--red); }
+.dep-info-secondary {
+  font-size: 10px;
+  color: var(--dim2);
+}
+
 /* ── Cards grid ─────────────────────── */
 #cards-grid {
   display: grid;
@@ -976,23 +996,7 @@ function render(rows) {
   document.getElementById("cnt-runs").textContent     = runs;
   document.getElementById("cnt-total").textContent    = rows.length;
 
-  // 推送每台機器的快照到 sparkline 歷史
-  rows.forEach(row => {
-    pushSparkPoint(
-      row.machine_id,
-      parseInt(row.deposits_count, 10) || 0,
-      parseInt(row.runs_count,     10) || 0
-    );
-  });
-
-  // 清除已不存在的機器 ID 歷史
-  const activeIds = new Set(rows.map(r => r.machine_id));
-  const h = loadSparkHistory();
-  let changed = false;
-  Object.keys(h).forEach(id => {
-    if (!activeIds.has(id)) { delete h[id]; changed = true; }
-  });
-  if (changed) saveSparkHistory(h);
+  // 歷史資料由 server 回傳（row.history），不再使用 localStorage
 
   const grid = document.getElementById("cards-grid");
 
@@ -1016,8 +1020,6 @@ function render(rows) {
     rows = [...rows].sort((a,b) => (a.user_name||'').localeCompare(b.user_name||'', 'zh-TW'));
   }
 
-  const sparkHistory = loadSparkHistory();
-
   grid.innerHTML = rows.map(row => {
     const s   = effStatus(row);
     const rph = fmtRph(row.runs_count, row.elapsed_seconds);
@@ -1026,11 +1028,35 @@ function render(rows) {
       ? `<div class="mcard-err" title="${esc(row.error_msg)}">⚠ ${esc(row.error_msg)}</div>`
       : "";
 
-    // sparkline
-    const sid  = row.machine_id;
-    const hist = sparkHistory[sid] || { deposits: [], runs: [] };
-    const sparkDeposits = makeSpark(hist.deposits, "#f0a830");
-    const sparkRuns     = makeSpark(hist.runs,     "#40d67e");
+    // sparkline（歷史資料由 server 回傳）
+    const hist = row.history || { deposits: [], runs: [] };
+    // 刷場：累計 → 20 分鐘視窗 rph 速率序列
+    const runsRate = toRateSeries(hist.runs);
+    const sparkRuns = makeSpark(runsRate, "#40d67e");
+    // 取最新一點當作「當前 rph」、整段最高當作「峰值」
+    const curRph  = runsRate.length ? runsRate[runsRate.length - 1].v.toFixed(1) : null;
+    const peakRph = runsRate.length ? Math.max(...runsRate.map(p => p.v)).toFixed(1) : null;
+
+    // 存金幣：用文字呈現「上次距今多久 + 平均間隔」
+    //   - 跳過 t0 那筆 v=0 的 placeholder
+    //   - 平均間隔取最近最多 5 個 interval（少於 2 筆則不顯示）
+    //   - 距今 > 2.5h 標紅（正常 ~2h 一次）
+    let depPrimary = '—', depSecondary = '', depStale = false;
+    const realDeps = (hist.deposits || []).filter(p => p.v > 0);
+    if (realDeps.length >= 1) {
+      const lastT = realDeps[realDeps.length - 1].t;
+      const sinceMs = Date.now() - lastT;
+      depStale = sinceMs > 2.5 * 3600 * 1000;
+      depPrimary = `上次 ${fmtDur(sinceMs)} 前`;
+      if (realDeps.length >= 2) {
+        const N = Math.min(5, realDeps.length - 1);
+        let sum = 0;
+        for (let i = realDeps.length - N; i < realDeps.length; i++) {
+          sum += realDeps[i].t - realDeps[i-1].t;
+        }
+        depSecondary = `間隔 ~${fmtDur(sum / N)}`;
+      }
+    }
 
     const rt  = relTime(row.last_seen);
     return `<div class="mcard ${s}" draggable="true" data-id="${esc(sid)}" data-status="${s}" data-name="${esc(row.user_name||'')}" data-mid="${esc(sid)}">
@@ -1062,12 +1088,20 @@ function render(rows) {
         </div>
       </div>
       <div class="mcard-spark">
-        <div class="spark-item">
-          <div class="spark-label">存金幣趨勢</div>
-          ${sparkDeposits}
+        <div class="spark-item" style="flex: 0 0 38%;">
+          <div class="spark-label">存金幣節奏</div>
+          <div class="dep-info">
+            <span class="dep-info-primary ${depStale ? 'stale' : ''}">${depPrimary}</span>
+            ${depSecondary ? `<span class="dep-info-secondary">${depSecondary}</span>` : ''}
+          </div>
         </div>
         <div class="spark-item">
-          <div class="spark-label">刷場趨勢</div>
+          <div class="spark-label">
+            <span>場/時 趨勢</span>
+            <span style="float:right; color:var(--dim); font-family:var(--mono); letter-spacing:0; text-transform:none;">
+              ${curRph !== null ? `現 ${curRph}` : '—'}${peakRph !== null ? ` · 峰 ${peakRph}` : ''}
+            </span>
+          </div>
           ${sparkRuns}
         </div>
       </div>
@@ -1116,62 +1150,105 @@ function applyFilters() {
   });
 }
 
-// ── Sparkline history (localStorage) ─
-const LS_SPARK = "mabi_spark_history";
-const SPARK_MAX    = 500;          // 每台最多 500 筆（防爆用）
-const SPARK_TTL_MS = 3 * 24 * 60 * 60 * 1000; // 保留 3 天
+// Sparkline 歷史改由 server 端 machine_history 提供（隨 /monitor_status 回傳）
+// 不再需要 localStorage 儲存
 
-function loadSparkHistory() {
-  try { return JSON.parse(localStorage.getItem(LS_SPARK) || "{}"); } catch { return {}; }
+// 把累計序列轉成「視窗速率」序列
+//   每點的速率 = 視窗內 (Δ累計值) / (Δ時間, 小時)
+//   遇到累計值下降（機器重啟）會從重啟點起算
+//   windowMs 預設 20 分鐘：足以平滑單筆 1~2 場的小跳動，又能反映效率變化
+function toRateSeries(points, windowMs = 20 * 60 * 1000) {
+  if (!points || points.length < 2) return [];
+  const out = [];
+  for (let i = 1; i < points.length; i++) {
+    const tI = points[i].t;
+    const vI = points[i].v;
+    let j = i;
+    while (j > 0) {
+      const prev = points[j - 1];
+      if (tI - prev.t > windowMs) break;       // 已超出視窗
+      if (prev.v > points[j].v) break;          // 邊界 j 偵測到重啟
+      j--;
+    }
+    if (j === i) continue;                       // 沒可用前一點（重啟剛發生 / 跨越資料中斷）
+    const dt = (tI - points[j].t) / 3600000;     // 小時
+    if (dt <= 0) continue;
+    const dv = vI - points[j].v;
+    out.push({ t: tI, v: dv < 0 ? 0 : dv / dt });
+  }
+  return out;
 }
-function saveSparkHistory(h) {
-  localStorage.setItem(LS_SPARK, JSON.stringify(h));
-}
-function pushSparkPoint(id, deposits, runs) {
-  const h = loadSparkHistory();
-  if (!h[id]) h[id] = { deposits: [], runs: [] };
-  const ts  = Date.now();
-  const cut = ts - SPARK_TTL_MS;
 
-  // 去重：只有數值改變時才推新快照
-  const lastD = h[id].deposits.length ? h[id].deposits[h[id].deposits.length - 1].v : null;
-  const lastR = h[id].runs.length     ? h[id].runs[h[id].runs.length - 1].v         : null;
-  if (deposits !== lastD) h[id].deposits.push({ t: ts, v: deposits });
-  if (runs     !== lastR) h[id].runs.push({ t: ts, v: runs });
-
-  // 清除 3 天以前的舊資料
-  h[id].deposits = h[id].deposits.filter(p => p.t >= cut).slice(-SPARK_MAX);
-  h[id].runs     = h[id].runs.filter(p => p.t >= cut).slice(-SPARK_MAX);
-
-  saveSparkHistory(h);
-}
-
-function makeSpark(points, color) {
+// 渲染 sparkline。
+//   - x 軸用「時間」而非陣列索引：兩點之間時間越久，水平距離越長 → 資料中斷會視覺呈現
+//   - 相鄰兩點時間差超過 gapMs（預設 1h）視為「斷線」：折線斷開，中間以虛線連接
+//   - opts.minZero=true：把 y 軸下限鎖在 0
+function makeSpark(points, color, opts = {}) {
   if (!points || points.length < 2) {
     return `<svg class="spark-svg" viewBox="0 0 100 28" preserveAspectRatio="none">
       <line x1="0" y1="20" x2="100" y2="20" stroke="${color}" stroke-width="1" stroke-dasharray="3,3" opacity=".25"/>
     </svg>`;
   }
+  const W = 100, H = 28, pad = 3;
+  const gapMs = opts.gapMs ?? 60 * 60 * 1000;   // > 1 小時無樣本 → 視為斷線
+
   const vals = points.map(p => p.v);
-  const min  = Math.min(...vals);
+  const min  = opts.minZero ? 0 : Math.min(...vals);
   const max  = Math.max(...vals);
   const range = max - min || 1;
-  const W = 100, H = 28, pad = 3;
-  const xs = points.map((_, i) => (i / (points.length - 1)) * W);
-  const ys = vals.map(v => H - pad - ((v - min) / range) * (H - pad * 2));
-  const poly = xs.map((x, i) => `${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");
-  // area fill
-  const areaPts = `0,${H} ` + poly + ` ${W},${H}`;
+  const tMin = points[0].t;
+  const tMax = points[points.length - 1].t;
+  const tRange = tMax - tMin || 1;
+
+  const coords = points.map(p => ({
+    x: ((p.t - tMin) / tRange) * W,
+    y: H - pad - ((p.v - min) / range) * (H - pad * 2),
+    t: p.t,
+  }));
+
+  // 依時間 gap 切分連續段
+  const segments = [[coords[0]]];
+  for (let i = 1; i < coords.length; i++) {
+    if (coords[i].t - coords[i - 1].t > gapMs) {
+      segments.push([coords[i]]);
+    } else {
+      segments[segments.length - 1].push(coords[i]);
+    }
+  }
+
+  const gradId = `sg-${color.replace('#','')}-${Math.random().toString(36).slice(2,7)}`;
+  let body = '';
+
+  // 各段繪 area + polyline；單點段繪小圓
+  segments.forEach(seg => {
+    if (seg.length === 1) {
+      body += `<circle cx="${seg[0].x.toFixed(1)}" cy="${seg[0].y.toFixed(1)}" r="1.7" fill="${color}"/>`;
+      return;
+    }
+    const polyStr = seg.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    const x0 = seg[0].x.toFixed(1);
+    const xN = seg[seg.length - 1].x.toFixed(1);
+    body += `<polygon points="${x0},${H} ${polyStr} ${xN},${H}" fill="url(#${gradId})"/>`;
+    body += `<polyline points="${polyStr}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  });
+
+  // 段與段之間的斷線：虛線連接，標示「這段沒資料」
+  for (let i = 1; i < segments.length; i++) {
+    const a = segments[i - 1][segments[i - 1].length - 1];
+    const b = segments[i][0];
+    body += `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${color}" stroke-width="1" stroke-dasharray="2,2" opacity=".35"/>`;
+  }
+
+  const last = coords[coords.length - 1];
   return `<svg class="spark-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
     <defs>
-      <linearGradient id="sg-${color.replace('#','')}" x1="0" y1="0" x2="0" y2="1">
+      <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="${color}" stop-opacity=".25"/>
         <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
       </linearGradient>
     </defs>
-    <polygon points="${areaPts}" fill="url(#sg-${color.replace('#','')})" />
-    <polyline points="${poly}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
-    <circle cx="${xs[xs.length-1].toFixed(1)}" cy="${ys[ys.length-1].toFixed(1)}" r="2.5" fill="${color}"/>
+    ${body}
+    <circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="2.5" fill="${color}"/>
   </svg>`;
 }
 
@@ -1341,6 +1418,13 @@ function relTime(iso){
 }
 function fmtElapsed(sec){if(!sec||sec<=0)return"—";const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;return`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;}
 function fmtRph(runs,sec){if(!sec||sec<=0||!runs)return"—";return(runs/(sec/3600)).toFixed(1);}
+// 格式化時長（毫秒 → "5m" / "1h32m" / "12h"）
+function fmtDur(ms){
+  const min = Math.max(0, Math.round(ms / 60000));
+  if (min < 60) return `${min}m`;
+  const h = Math.floor(min / 60), m = min % 60;
+  return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2,"0")}m`;
+}
 </script>
 </body>
 </html>
