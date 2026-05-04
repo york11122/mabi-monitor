@@ -1253,7 +1253,15 @@ function makeSpark(points, color, opts = {}) {
     body += `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${color}" stroke-width="1" stroke-dasharray="2,2" opacity=".35"/>`;
   }
 
-  const last = coords[coords.length - 1];
+  const fmtT = ts => {
+    const d = new Date(ts);
+    const hm = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    const dMin = new Date(tMin), dMax = new Date(tMax);
+    if (dMin.getDate() !== dMax.getDate()) return (d.getMonth()+1) + '/' + d.getDate() + ' ' + hm;
+    return hm;
+  };
+  const timeRow = `<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--dim2);font-family:var(--mono);margin-top:1px;line-height:1;opacity:.7;"><span>${fmtT(tMin)}</span><span>${fmtT(tMax)}</span></div>`;
+
   return `<svg class="spark-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
     <defs>
       <linearGradient id="${gradId}" x1="0" y1="0" x2="0" y2="1">
@@ -1262,8 +1270,7 @@ function makeSpark(points, color, opts = {}) {
       </linearGradient>
     </defs>
     ${body}
-    <circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="2.5" fill="${color}"/>
-  </svg>`;
+  </svg>${timeRow}`;
 }
 
 // ── localStorage order ───────────────
