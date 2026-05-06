@@ -1204,7 +1204,7 @@ function makeSpark(points, color, opts = {}) {
     </svg>`;
   }
   const W = 100, H = 28, pad = 3;
-  const gapMs = opts.gapMs ?? 60 * 60 * 1000;   // > 1 小時無樣本 → 視為斷線
+  const gapMs = opts.gapMs ?? 15 * 60 * 1000;   // > 15 分鐘無樣本 → 視為斷線
 
   const vals = points.map(p => p.v);
   const min  = opts.minZero ? 0 : Math.min(...vals);
