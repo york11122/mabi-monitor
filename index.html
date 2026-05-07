@@ -1027,24 +1027,28 @@ function render(rows) {
     const recentRate = runsRate.filter(p => p.t >= recentCutoff);
     const peakRph = recentRate.length ? Math.max(...recentRate.map(p => p.v)).toFixed(1) : null;
 
-    // 存金幣：用文字呈現「上次距今多久 + 平均間隔」
-    //   - 跳過 t0 那筆 v=0 的 placeholder
-    //   - 平均間隔取最近最多 5 個 interval（少於 2 筆則不顯示）
+    // 存金幣：用文字呈現「上次距今多久 + 最近一次間隔」
+    //   - 伺服器只回傳 3h 視窗，compressDeposits 會把視窗第一筆當 baseline 留下；
+    //     當 v>1 時那筆是「3h 前累計值帶過來」要剔除，但 v=1 必是真實事件
+    //     （v 從 0→1，剛啟動或重置後的第一次），要保留。
+    //   - 間隔 = 最新一次事件 與 上一次事件 的時間差
     //   - 距今 > 2.5h 標紅（正常 ~2h 一次）
     let depPrimary = '—', depSecondary = '', depStale = false;
     const realDeps = (hist.deposits || []).filter(p => p.v > 0);
-    if (realDeps.length >= 1) {
-      const lastT = realDeps[realDeps.length - 1].t;
+    const windowStart = (hist.runs && hist.runs.length) ? hist.runs[0].t : null;
+    const isBaseline = windowStart !== null
+      && realDeps.length >= 1
+      && realDeps[0].t === windowStart
+      && realDeps[0].v > 1;
+    const depEvents = isBaseline ? realDeps.slice(1) : realDeps;
+    if (depEvents.length >= 1) {
+      const lastT = depEvents[depEvents.length - 1].t;
       const sinceMs = Date.now() - lastT;
       depStale = sinceMs > 2.5 * 3600 * 1000;
       depPrimary = `上次 ${fmtDur(sinceMs)} 前`;
-      if (realDeps.length >= 2) {
-        const N = Math.min(5, realDeps.length - 1);
-        let sum = 0;
-        for (let i = realDeps.length - N; i < realDeps.length; i++) {
-          sum += realDeps[i].t - realDeps[i-1].t;
-        }
-        depSecondary = `間隔 ~${fmtDur(sum / N)}`;
+      if (depEvents.length >= 2) {
+        const prevT = depEvents[depEvents.length - 2].t;
+        depSecondary = `間隔 ${fmtDur(lastT - prevT)}`;
       }
     }
 
