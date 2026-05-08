@@ -570,12 +570,9 @@ td {
 /* ── Cards grid ─────────────────────── */
 #cards-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 10px;
 }
-@media (min-width: 560px)  { #cards-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 900px)  { #cards-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 1200px) { #cards-grid { grid-template-columns: repeat(4, 1fr); } }
 
 .mcard {
   background: var(--card);
@@ -638,6 +635,7 @@ td {
 .mcard.running { border-color: rgba(64,214,126,.2); }
 .mcard.warning { border-color: rgba(245,188,48,.2); }
 .mcard.error   { border-color: rgba(242,92,80,.2); }
+.mcard.rph-alert { border-color: rgba(245,188,48,.45); }
 
 /* header row */
 .mcard-head {
@@ -898,6 +896,7 @@ td {
 const EDGE_URL     = "https://mabi-auto-api.mabi-auto.workers.dev/monitor_status";
 const OFFLINE_MINS = 12;
 const REFRESH_SEC  = 60;
+const LOW_RPH      = 60;
 
 let pw = "", timer = null;
 
@@ -1020,12 +1019,16 @@ function render(rows) {
     const hist = row.history || { deposits: [], runs: [] };
     // 刷場：累計 → 20 分鐘視窗 rph 速率序列
     const runsRate = toRateSeries(hist.runs);
-    const sparkRuns = makeSpark(runsRate, "#40d67e");
     // 取最新一點當作「當前 rph」、整段最高當作「峰值」
     const curRph  = runsRate.length ? runsRate[runsRate.length - 1].v.toFixed(1) : null;
     const recentCutoff = Date.now() - 20 * 60 * 1000;
     const recentRate = runsRate.filter(p => p.t >= recentCutoff);
     const peakRph = recentRate.length ? Math.max(...recentRate.map(p => p.v)).toFixed(1) : null;
+    // 低刷速警報：用近期速率，與趨勢圖一致
+    const _effRph = curRph !== null ? parseFloat(curRph) : (rph !== '—' ? parseFloat(rph) : null);
+    const rphAlert = _effRph !== null && _effRph < LOW_RPH;
+    // 底部色帶與趨勢線用同一份資料，速率跌破門檻的時段就亮起
+    const sparkRuns = makeSpark(runsRate, "#40d67e", { threshold: LOW_RPH });
 
     // 存金幣：用文字呈現「上次距今多久 + 最近一次間隔」
     //   - 伺服器只回傳 3h 視窗，compressDeposits 會把視窗第一筆當 baseline 留下；
@@ -1053,7 +1056,7 @@ function render(rows) {
     }
 
     const rt  = relTime(row.last_seen);
-    return `<div class="mcard ${s}" draggable="true" data-id="${esc(sid)}" data-status="${s}" data-name="${esc(row.user_name||'')}" data-mid="${esc(sid)}" data-deposits="${parseInt(row.deposits_count,10)||0}" data-runs="${parseInt(row.runs_count,10)||0}">
+    return `<div class="mcard ${s}${rphAlert ? ' rph-alert' : ''}" draggable="true" data-id="${esc(sid)}" data-status="${s}" data-name="${esc(row.user_name||'')}" data-mid="${esc(sid)}" data-deposits="${parseInt(row.deposits_count,10)||0}" data-runs="${parseInt(row.runs_count,10)||0}">
       <div class="mcard-drag-hint"><span></span><span></span><span></span></div>
       <div class="mcard-head">
         <div style="min-width:0; flex:1;">
@@ -1061,8 +1064,9 @@ function render(rows) {
             <div class="mcard-name">${esc(row.user_name||"未命名")}</div>
             <div class="mcard-id">${esc(sid)}</div>
           </div>
-          <div style="display:flex; align-items:center; margin-top:3px;">
+          <div style="display:flex; align-items:center; gap:6px; margin-top:3px;">
             ${(row.app_version || row.python_version) ? `<span style="font-family:var(--mono);font-size:10px;color:var(--dim2);" title="UI: ${esc(row.app_version||'—')} / Bot: ${esc(row.python_version||'—')}">${esc(row.app_version||'—')} / ${esc(row.python_version||'—')}</span>` : ''}
+            ${rphAlert ? `<span class="badge badge-warning" style="font-size:10px;padding:2px 8px;line-height:1.4;">⚠ 低刷速</span>` : ''}
           </div>
         </div>
         ${makeBadge(s)}
@@ -1091,8 +1095,8 @@ function render(rows) {
         </div>
         <div class="spark-item">
           <div class="spark-label">
-            <span>場/時 趨勢</span>
-            <span style="float:right; color:var(--dim); font-family:var(--mono); letter-spacing:0; text-transform:none;">
+            <span>場/時 趨勢</span><span style="color:var(--yellow);opacity:.55;font-family:var(--mono);font-size:8px;letter-spacing:0;text-transform:none;margin-left:4px;">基準 ${LOW_RPH}</span>
+            <span style="float:right; color:${rphAlert ? 'var(--yellow)' : 'var(--dim)'}; font-family:var(--mono); letter-spacing:0; text-transform:none;">
               ${curRph !== null ? `現 ${curRph}` : '—'}${peakRph !== null ? ` · 峰 ${peakRph}` : ''}
             </span>
           </div>
@@ -1222,6 +1226,7 @@ function makeSpark(points, color, opts = {}) {
     x: ((p.t - tMin) / tRange) * W,
     y: H - pad - ((p.v - min) / range) * (H - pad * 2),
     t: p.t,
+    v: p.v,
   }));
 
   // 依時間 gap 切分連續段
@@ -1237,17 +1242,36 @@ function makeSpark(points, color, opts = {}) {
   const gradId = `sg-${color.replace('#','')}-${Math.random().toString(36).slice(2,7)}`;
   let body = '';
 
-  // 各段繪 area + polyline；單點段繪小圓
+  // 各段繪 area + 逐段著色折線；單點段繪小圓
   segments.forEach(seg => {
     if (seg.length === 1) {
-      body += `<circle cx="${seg[0].x.toFixed(1)}" cy="${seg[0].y.toFixed(1)}" r="1.7" fill="${color}"/>`;
+      const c = opts.threshold !== undefined && seg[0].v < opts.threshold ? '#f5bc30' : color;
+      body += `<circle cx="${seg[0].x.toFixed(1)}" cy="${seg[0].y.toFixed(1)}" r="1.7" fill="${c}"/>`;
       return;
     }
     const polyStr = seg.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-    const x0 = seg[0].x.toFixed(1);
-    const xN = seg[seg.length - 1].x.toFixed(1);
+    const x0 = seg[0].x.toFixed(1), xN = seg[seg.length - 1].x.toFixed(1);
     body += `<polygon points="${x0},${H} ${polyStr} ${xN},${H}" fill="url(#${gradId})"/>`;
-    body += `<polyline points="${polyStr}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    // 逐段著色：低於門檻的區間變黃，跨越門檻時插值切點
+    for (let i = 0; i < seg.length - 1; i++) {
+      const a = seg[i], b = seg[i + 1];
+      if (opts.threshold === undefined) {
+        body += `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>`;
+        continue;
+      }
+      const aBlow = a.v < opts.threshold, bBlow = b.v < opts.threshold;
+      if (aBlow === bBlow) {
+        // 同側，直接著色
+        body += `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${aBlow ? '#f5bc30' : color}" stroke-width="1.5" stroke-linecap="round"/>`;
+      } else {
+        // 跨越門檻：插值求交叉點
+        const ratio = (opts.threshold - a.v) / (b.v - a.v);
+        const mx = a.x + ratio * (b.x - a.x);
+        const thY = H - pad - ((opts.threshold - min) / range) * (H - pad * 2);
+        body += `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${mx.toFixed(1)}" y2="${thY.toFixed(1)}" stroke="${aBlow ? '#f5bc30' : color}" stroke-width="1.5" stroke-linecap="round"/>`;
+        body += `<line x1="${mx.toFixed(1)}" y1="${thY.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${bBlow ? '#f5bc30' : color}" stroke-width="1.5" stroke-linecap="round"/>`;
+      }
+    }
   });
 
   // 段與段之間的斷線：虛線連接，標示「這段沒資料」
@@ -1256,6 +1280,15 @@ function makeSpark(points, color, opts = {}) {
     const b = segments[i][0];
     body += `<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${color}" stroke-width="1" stroke-dasharray="2,2" opacity=".35"/>`;
   }
+
+  // 門檻線（只在閾值落入 y 顯示範圍內時才繪製）
+  if (opts.threshold !== undefined) {
+    const thY = H - pad - ((opts.threshold - min) / range) * (H - pad * 2);
+    if (thY >= 0 && thY <= H) {
+      body += `<line x1="0" y1="${thY.toFixed(1)}" x2="${W}" y2="${thY.toFixed(1)}" stroke="#f5bc30" stroke-width="0.8" stroke-dasharray="3,2" opacity=".55"/>`;
+    }
+  }
+
 
   const fmtT = ts => {
     const d = new Date(ts);
