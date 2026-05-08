@@ -1024,9 +1024,8 @@ function render(rows) {
     const recentCutoff = Date.now() - 20 * 60 * 1000;
     const recentRate = runsRate.filter(p => p.t >= recentCutoff);
     const peakRph = recentRate.length ? Math.max(...recentRate.map(p => p.v)).toFixed(1) : null;
-    // 低刷速警報：用近期速率，與趨勢圖一致
-    const _effRph = curRph !== null ? parseFloat(curRph) : (rph !== '—' ? parseFloat(rph) : null);
-    const rphAlert = _effRph !== null && _effRph < LOW_RPH;
+    // 低刷速警報：趨勢圖超過一半的點低於基準才觸發，避免短暫波動誤報
+    const rphAlert = runsRate.length > 0 && runsRate.filter(p => p.v < LOW_RPH).length / runsRate.length > 0.5;
     // 底部色帶與趨勢線用同一份資料，速率跌破門檻的時段就亮起
     const sparkRuns = makeSpark(runsRate, "#40d67e", { threshold: LOW_RPH });
 
