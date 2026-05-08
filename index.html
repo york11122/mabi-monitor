@@ -834,7 +834,9 @@ td {
         <div class="scard-dot"></div>
         <div class="scard-body">
           <div class="scard-val" id="cnt-warning">—</div>
-          <div class="scard-label">警告</div>
+          <div class="scard-label" style="display:flex;align-items:center;gap:4px;">
+            警告<span id="cnt-low-rph-wrap" style="display:none;color:var(--yellow);font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:0;">· <span id="cnt-low-rph">0</span> 低刷速</span>
+          </div>
         </div>
       </div>
       <div class="scard error">
@@ -1170,6 +1172,9 @@ function applyFilters() {
   document.getElementById("cnt-deposits").textContent = d;
   document.getElementById("cnt-runs").textContent     = runs;
   document.getElementById("cnt-total").textContent    = total;
+  const lowRph = [...document.querySelectorAll("#cards-grid .mcard.rph-alert")].filter(c => c.style.display !== "none").length;
+  document.getElementById("cnt-low-rph").textContent = lowRph;
+  document.getElementById("cnt-low-rph-wrap").style.display = lowRph > 0 ? "" : "none";
 }
 
 // Sparkline 歷史改由 server 端 machine_history 提供（隨 /monitor_status 回傳）
