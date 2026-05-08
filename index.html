@@ -1024,8 +1024,9 @@ function render(rows) {
     const recentCutoff = Date.now() - 20 * 60 * 1000;
     const recentRate = runsRate.filter(p => p.t >= recentCutoff);
     const peakRph = recentRate.length ? Math.max(...recentRate.map(p => p.v)).toFixed(1) : null;
-    // 低刷速警報：趨勢圖超過一半的點低於基準才觸發，避免短暫波動誤報
-    const rphAlert = runsRate.length > 0 && runsRate.filter(p => p.v < LOW_RPH).length / runsRate.length > 0.5;
+    // 低刷速警報：近 30 分鐘超過一半的點低於基準才觸發
+    const recent30 = runsRate.filter(p => p.t >= Date.now() - 30 * 60 * 1000);
+    const rphAlert = recent30.length > 0 && recent30.filter(p => p.v < LOW_RPH).length / recent30.length > 0.5;
     // 底部色帶與趨勢線用同一份資料，速率跌破門檻的時段就亮起
     const sparkRuns = makeSpark(runsRate, "#40d67e", { threshold: LOW_RPH });
 
@@ -1065,7 +1066,7 @@ function render(rows) {
           </div>
           <div style="display:flex; align-items:center; gap:6px; margin-top:3px;">
             ${(row.app_version || row.python_version) ? `<span style="font-family:var(--mono);font-size:10px;color:var(--dim2);" title="UI: ${esc(row.app_version||'—')} / Bot: ${esc(row.python_version||'—')}">${esc(row.app_version||'—')} / ${esc(row.python_version||'—')}</span>` : ''}
-            ${rphAlert ? `<span class="badge badge-warning" style="font-size:10px;padding:2px 8px;line-height:1.4;">⚠ 低刷速</span>` : ''}
+            ${rphAlert ? `<span class="badge badge-warning" style="font-size:10px;padding:2px 8px;line-height:1.4;">⚠ 近30分低刷速</span>` : ''}
           </div>
         </div>
         ${makeBadge(s)}
