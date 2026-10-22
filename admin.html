@@ -680,11 +680,12 @@ td { padding: 12px 16px; vertical-align: middle; font-size: 13px; }
             <th class="col-extra2">到期日</th>
             <th class="col-extra2">建立日期</th>
             <th>啟用</th>
+            <th title="可使用 CB 程式">CB</th>
             <th>操作</th>
           </tr>
         </thead>
         <tbody id="tbody">
-          <tr class="empty-row"><td colspan="7">載入中...</td></tr>
+          <tr class="empty-row"><td colspan="8">載入中...</td></tr>
         </tbody>
       </table>
     </div>
@@ -727,6 +728,14 @@ td { padding: 12px 16px; vertical-align: middle; font-size: 13px; }
           <label>監控頁密碼 <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--dim2);">（選填）</span></label>
           <input id="f-viewer-pw" type="text" placeholder="留空則無法登入監控頁">
           <span class="field-hint">多筆授權可共用相同密碼以共享同一個監控檢視</span>
+        </div>
+        <div class="field" id="f-products-wrap">
+          <label>可用程式</label>
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:var(--sub); font-weight:400;">
+            <input type="checkbox" id="f-product-cb" style="width:auto; accent-color:var(--amber2); cursor:pointer;">
+            CB
+          </label>
+          <span class="field-hint">建立後請在列表的 CB 開關調整</span>
         </div>
         <div class="field" id="f-active-wrap" style="display:none;">
           <label>狀態</label>
@@ -870,7 +879,7 @@ function renderSummary(rows) {
 }
 
 function renderTable(rows) {
-  if (rows.length === 0) { $tbody.innerHTML = '<tr class="empty-row"><td colspan="7">沒有資料</td></tr>'; return; }
+  if (rows.length === 0) { $tbody.innerHTML = '<tr class="empty-row"><td colspan="8">沒有資料</td></tr>'; return; }
   $tbody.innerHTML = rows.map(l => {
     const deviceBadge = makeDeviceBadge(l);
     const expireHtml  = makeExpireHtml(l.expires_at);
@@ -892,6 +901,12 @@ function renderTable(rows) {
       <td>
         <label class="toggle">
           <input type="checkbox" ${l.is_active?"checked":""} onchange="toggleActive('${esc(l.id)}', this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+      <td>
+        <label class="toggle" title="可使用 CB 程式">
+          <input type="checkbox" ${hasProduct(l,"CB")?"checked":""} onchange="toggleProduct('${esc(l.id)}', 'CB', this.checked)">
           <span class="toggle-slider"></span>
         </label>
       </td>
@@ -934,6 +949,24 @@ function copyCreatedKey() {
   navigator.clipboard.writeText(document.getElementById("created-key").textContent).then(()=>toast("已複製 Key","ok")).catch(()=>{});
 }
 
+// 可用產品（licenses.products，逗號分隔）。列表上的開關只送 products 一欄——
+// 不走編輯視窗，因為編輯視窗的儲存會一併送出其他欄位。
+function productList(l) {
+  return String(l.products||"").split(",").map(x=>x.trim().toUpperCase()).filter(Boolean);
+}
+function hasProduct(l, code) { return productList(l).includes(code); }
+
+async function toggleProduct(id, code, checked) {
+  const l = allLicenses.find(x=>x.id===id); if(!l) return;
+  const next = productList(l).filter(x=>x!==code);
+  if (checked) next.push(code);
+  try {
+    await api("PATCH", `/admin/licenses/${id}`, { products: next });
+    l.products = next.join(",");
+    toast(checked?`已開通 ${code}`:`已關閉 ${code}`,"ok");
+  } catch(e) { toast("操作失敗："+e.message,"err"); await loadData(); }
+}
+
 async function toggleActive(id, checked) {
   try {
     await api("PATCH", `/admin/licenses/${id}`, { is_active: checked?1:0 });
@@ -952,6 +985,8 @@ function openCreateModal() {
   document.getElementById("f-viewer-pw").value = "";
   document.getElementById("f-permanent").checked = false;
   document.getElementById("f-active-wrap").style.display = "none";
+  document.getElementById("f-products-wrap").style.display = "flex";
+  document.getElementById("f-product-cb").checked = false;
   const btn = document.getElementById("modal-submit-btn");
   btn.textContent = "建立"; btn.disabled = false;
   document.getElementById("form-section").style.display = "flex";
@@ -970,6 +1005,7 @@ function openEditModal(id) {
   document.getElementById("f-viewer-pw").value = l.viewer_password||"";
   document.getElementById("f-permanent").checked = !l.expires_at;
   document.getElementById("f-active-wrap").style.display = "flex";
+  document.getElementById("f-products-wrap").style.display = "none";
   document.getElementById("f-active").checked = !!l.is_active;
   updateActiveLabel();
   const btn = document.getElementById("modal-submit-btn");
@@ -1011,7 +1047,8 @@ async function submitModal() {
       });
       toast("已儲存","ok"); closeModal(); await loadData();
     } else {
-      const data = await api("POST","/admin/licenses",{user_name:name,expires_at,viewer_password:viewerPw||null});
+      const data = await api("POST","/admin/licenses",{user_name:name,expires_at,viewer_password:viewerPw||null,
+        products:document.getElementById("f-product-cb").checked?["CB"]:[]});
       document.getElementById("created-key").textContent = data.key;
       document.getElementById("form-section").style.display  = "none";
       document.getElementById("created-section").style.display = "flex";
