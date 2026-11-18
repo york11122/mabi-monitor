@@ -392,6 +392,18 @@ td { padding: 12px 16px; vertical-align: middle; font-size: 13px; }
 
 @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.2;} }
 
+/* ── 可用程式代號／各程式最後出現 ───── */
+.products-input {
+  width: 92px; padding: 4px 7px; font-family: var(--mono); font-size: 12px;
+  text-transform: uppercase;
+}
+.usage-cell { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.usage-cell .badge { cursor: pointer; }
+.usage-none { color: var(--dim2); font-size: 12px; }
+.usage-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.usage-table th, .usage-table td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+.usage-table td { font-family: var(--mono); }
+
 .expire-ok   { color: var(--dim); font-family: var(--mono); font-size: 12px; }
 .expire-soon { color: var(--yellow); font-weight: 600; font-family: var(--mono); font-size: 12px; }
 .expire-past { color: var(--red); font-family: var(--mono); font-size: 12px; }
@@ -680,12 +692,13 @@ td { padding: 12px 16px; vertical-align: middle; font-size: 13px; }
             <th class="col-extra2">到期日</th>
             <th class="col-extra2">建立日期</th>
             <th>啟用</th>
-            <th title="可使用 CB 程式">CB</th>
+            <th title="可使用的程式代號，逗號分隔（例 CB, G1）">可用程式</th>
+            <th title="各程式最後一次出現（點開看每日紀錄）">程式狀態</th>
             <th>操作</th>
           </tr>
         </thead>
         <tbody id="tbody">
-          <tr class="empty-row"><td colspan="8">載入中...</td></tr>
+          <tr class="empty-row"><td colspan="9">載入中...</td></tr>
         </tbody>
       </table>
     </div>
@@ -731,11 +744,8 @@ td { padding: 12px 16px; vertical-align: middle; font-size: 13px; }
         </div>
         <div class="field" id="f-products-wrap">
           <label>可用程式</label>
-          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:var(--sub); font-weight:400;">
-            <input type="checkbox" id="f-product-cb" style="width:auto; accent-color:var(--amber2); cursor:pointer;">
-            CB
-          </label>
-          <span class="field-hint">建立後請在列表的 CB 開關調整</span>
+          <input id="f-products" type="text" placeholder="例：CB, G1" style="font-family:var(--mono); text-transform:uppercase;">
+          <span class="field-hint">填程式代號，逗號分隔；建立後在列表的「可用程式」欄修改</span>
         </div>
         <div class="field" id="f-active-wrap" style="display:none;">
           <label>狀態</label>
@@ -753,6 +763,17 @@ td { padding: 12px 16px; vertical-align: middle; font-size: 13px; }
         <button class="btn-submit" id="modal-submit-btn" onclick="submitModal()">建立</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ════════ 每日紀錄 ════════ -->
+<div class="overlay" id="usage-overlay">
+  <div class="modal" style="gap:14px; max-width:560px;">
+    <div class="modal-header">
+      <h2 id="usage-title">每日紀錄</h2>
+      <button class="modal-close" onclick="document.getElementById('usage-overlay').classList.remove('open')">✕</button>
+    </div>
+    <div id="usage-body" style="max-height:60vh; overflow:auto;"></div>
   </div>
 </div>
 
@@ -879,7 +900,7 @@ function renderSummary(rows) {
 }
 
 function renderTable(rows) {
-  if (rows.length === 0) { $tbody.innerHTML = '<tr class="empty-row"><td colspan="8">沒有資料</td></tr>'; return; }
+  if (rows.length === 0) { $tbody.innerHTML = '<tr class="empty-row"><td colspan="9">沒有資料</td></tr>'; return; }
   $tbody.innerHTML = rows.map(l => {
     const deviceBadge = makeDeviceBadge(l);
     const expireHtml  = makeExpireHtml(l.expires_at);
@@ -905,11 +926,11 @@ function renderTable(rows) {
         </label>
       </td>
       <td>
-        <label class="toggle" title="可使用 CB 程式">
-          <input type="checkbox" ${hasProduct(l,"CB")?"checked":""} onchange="toggleProduct('${esc(l.id)}', 'CB', this.checked)">
-          <span class="toggle-slider"></span>
-        </label>
+        <input class="products-input" type="text" value="${esc(productList(l).join(", "))}" placeholder="—"
+          title="可用程式代號，逗號分隔；Enter 或離開欄位即儲存"
+          onkeydown="if(event.key==='Enter')this.blur()" onchange="saveProducts('${esc(l.id)}', this.value)">
       </td>
+      <td>${makeUsageHtml(l)}</td>
       <td>
         <div class="actions">
           <button class="btn btn-icon" title="編輯" onclick="openEditModal('${esc(l.id)}')">✏️</button>
@@ -949,22 +970,78 @@ function copyCreatedKey() {
   navigator.clipboard.writeText(document.getElementById("created-key").textContent).then(()=>toast("已複製 Key","ok")).catch(()=>{});
 }
 
-// 可用產品（licenses.products，逗號分隔）。列表上的開關只送 products 一欄——
-// 不走編輯視窗，因為編輯視窗的儲存會一併送出其他欄位。
-function productList(l) {
-  return String(l.products||"").split(",").map(x=>x.trim().toUpperCase()).filter(Boolean);
+// 可用程式（licenses.products，逗號分隔的代號）。新程式直接填新代號，不必改這頁或資料庫。
+// 列表上就地編輯、只送 products 一欄——不走編輯視窗，因為編輯視窗的儲存會一併送出其他欄位
+// （會把監控頁密碼清掉）。
+function parseCodes(text) {
+  const seen = [];
+  for (const part of String(text||"").split(/[,\s，、]+/)) {
+    const code = part.trim().toUpperCase();
+    if (code && !seen.includes(code)) seen.push(code);
+  }
+  return seen;
 }
-function hasProduct(l, code) { return productList(l).includes(code); }
+function productList(l) { return parseCodes(l.products); }
 
-async function toggleProduct(id, code, checked) {
+async function saveProducts(id, text) {
   const l = allLicenses.find(x=>x.id===id); if(!l) return;
-  const next = productList(l).filter(x=>x!==code);
-  if (checked) next.push(code);
+  const next = parseCodes(text);
+  const bad = next.filter(c=>!/^[A-Z0-9]{1,8}$/.test(c));
+  if (bad.length) { toast(`代號只能是英數字：${bad.join(", ")}`,"err"); renderTable(filtered()); return; }
   try {
     await api("PATCH", `/admin/licenses/${id}`, { products: next });
     l.products = next.join(",");
-    toast(checked?`已開通 ${code}`:`已關閉 ${code}`,"ok");
+    toast(next.length?`可用程式：${next.join(", ")}`:"已清空可用程式","ok");
+    renderTable(filtered());
   } catch(e) { toast("操作失敗："+e.message,"err"); await loadData(); }
+}
+
+// 各程式的最後出現（/usage_report 寫入 app_usage；心跳 30 分鐘一次，超過 35 分鐘沒消息算離線）
+const USAGE_OFFLINE_MIN = 35;
+const USAGE_LABELS = { opened:"開著", idle:"開著", running:"執行中", stopped:"已停止", error:"異常", offline:"離線" };
+
+function ago(iso) {
+  const mins = Math.max(0, Math.round((Date.now() - new Date(iso)) / 60000));
+  if (mins < 60) return `${mins} 分鐘前`;
+  if (mins < 60*24) return `${Math.round(mins/60)} 小時前`;
+  return `${Math.round(mins/1440)} 天前`;
+}
+
+function makeUsageHtml(l) {
+  const rows = l.usage || [];
+  if (!rows.length) return `<span class="usage-none">—</span>`;
+  return `<div class="usage-cell">` + rows.map(u => {
+    const stale = (Date.now() - new Date(u.last_seen)) / 60000 > USAGE_OFFLINE_MIN;
+    const s = stale && u.status !== "stopped" ? "offline" : u.status;
+    const css = { running:"running", opened:"unbound", idle:"unbound", error:"error" }[s] || "offline";
+    const tool = s === "running" && u.tool ? ` ${esc(u.tool)}` : "";
+    return `<span class="badge b-${css}" title="點開看每日紀錄" onclick="openUsage('${esc(l.id)}','${esc(l.user_name||"未命名")}')">`
+      + `<span class="badge-dot"></span>${esc(u.product)} ${esc(USAGE_LABELS[s]??s)}${tool} · ${ago(u.last_seen)}</span>`;
+  }).join("") + `</div>`;
+}
+
+function fmtHours(sec) {
+  if (!sec) return "0";
+  const h = Math.floor(sec/3600), m = Math.round((sec%3600)/60);
+  return h ? `${h} 小時 ${m} 分` : `${m} 分`;
+}
+
+async function openUsage(id, name) {
+  document.getElementById("usage-title").textContent = `${name}｜近 90 天每日紀錄`;
+  const $body = document.getElementById("usage-body");
+  $body.innerHTML = '<span class="spinner"></span>';
+  openOverlay("usage-overlay");
+  try {
+    const { days } = await api("GET", `/admin/usage/${id}`);
+    if (!days.length) { $body.innerHTML = '<p class="usage-none">還沒有紀錄</p>'; return; }
+    $body.innerHTML = `<table class="usage-table"><thead><tr>
+        <th>日期</th><th>程式</th><th>開啟次數</th><th>執行時間</th><th>用過的工具</th><th>最後出現</th>
+      </tr></thead><tbody>` + days.map(d => `<tr>
+        <td>${esc(d.day)}</td><td>${esc(d.product)}</td><td>${d.opens}</td>
+        <td>${fmtHours(d.run_seconds)}</td><td>${esc(d.tools||"—")}</td>
+        <td>${esc(new Date(d.last_seen).toLocaleTimeString("zh-TW",{hour:"2-digit",minute:"2-digit",hour12:false}))}</td>
+      </tr>`).join("") + `</tbody></table>`;
+  } catch(e) { $body.innerHTML = `<p class="usage-none">載入失敗：${esc(e.message)}</p>`; }
 }
 
 async function toggleActive(id, checked) {
@@ -986,7 +1063,7 @@ function openCreateModal() {
   document.getElementById("f-permanent").checked = false;
   document.getElementById("f-active-wrap").style.display = "none";
   document.getElementById("f-products-wrap").style.display = "flex";
-  document.getElementById("f-product-cb").checked = false;
+  document.getElementById("f-products").value = "";
   const btn = document.getElementById("modal-submit-btn");
   btn.textContent = "建立"; btn.disabled = false;
   document.getElementById("form-section").style.display = "flex";
@@ -1048,7 +1125,7 @@ async function submitModal() {
       toast("已儲存","ok"); closeModal(); await loadData();
     } else {
       const data = await api("POST","/admin/licenses",{user_name:name,expires_at,viewer_password:viewerPw||null,
-        products:document.getElementById("f-product-cb").checked?["CB"]:[]});
+        products:parseCodes(document.getElementById("f-products").value)});
       document.getElementById("created-key").textContent = data.key;
       document.getElementById("form-section").style.display  = "none";
       document.getElementById("created-section").style.display = "flex";
